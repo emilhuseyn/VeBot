@@ -17,7 +17,6 @@ import { UserMenu } from "@/components/layout/user-menu";
 import { useChatStore } from "@/store/chat";
 import { useUiStore } from "@/store/ui";
 import { useIsDesktop } from "@/lib/hooks";
-import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 
 function useTopCategories(): { items: MenuItem[]; loading: boolean } {
@@ -54,7 +53,6 @@ function SidebarContent({
   const reset = useChatStore((s) => s.reset);
   const select = useChatStore((s) => s.select);
   const toggleCollapsed = useUiStore((s) => s.toggleSidebarCollapsed);
-  const collapsed = useUiStore((s) => s.sidebarCollapsed);
   const setSidebarOpen = useUiStore((s) => s.setSidebarOpen);
   const { items, loading } = useTopCategories();
 
@@ -71,43 +69,50 @@ function SidebarContent({
 
   return (
     <div className="flex h-full flex-col">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center gap-2 px-3">
-        <BduMark size={30} />
-        {!rail && <BduWordmark className="truncate" />}
-        <div className="flex-1" />
-        {isDrawer ? (
-          <Button
-            variant="ghost"
-            size="iconSm"
-            onClick={closeDrawer}
-            aria-label={t("sidebar.close")}
-          >
-            <X className="h-4 w-4" aria-hidden />
-          </Button>
-        ) : (
-          <Tooltip
-            content={collapsed ? t("sidebar.expand") : t("sidebar.collapse")}
-            side="right"
-          >
+      {/* Header — in rail mode, stack the mark and the expand toggle vertically
+          so the expand control is always reachable in the 64px rail. */}
+      {rail ? (
+        <div className="flex shrink-0 flex-col items-center gap-1 px-2 pb-1 pt-3">
+          <BduMark size={30} />
+          <Tooltip content={t("sidebar.expand")} side="right">
             <Button
               variant="ghost"
               size="iconSm"
               onClick={toggleCollapsed}
-              aria-label={
-                collapsed ? t("sidebar.expand") : t("sidebar.collapse")
-              }
-              className={cn(rail && "mx-auto")}
+              aria-label={t("sidebar.expand")}
             >
-              {collapsed ? (
-                <PanelLeftOpen className="h-4 w-4" aria-hidden />
-              ) : (
-                <PanelLeftClose className="h-4 w-4" aria-hidden />
-              )}
+              <PanelLeftOpen className="h-4 w-4" aria-hidden />
             </Button>
           </Tooltip>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="flex h-14 shrink-0 items-center gap-2 px-3">
+          <BduMark size={30} />
+          <BduWordmark className="truncate" />
+          <div className="flex-1" />
+          {isDrawer ? (
+            <Button
+              variant="ghost"
+              size="iconSm"
+              onClick={closeDrawer}
+              aria-label={t("sidebar.close")}
+            >
+              <X className="h-4 w-4" aria-hidden />
+            </Button>
+          ) : (
+            <Tooltip content={t("sidebar.collapse")} side="right">
+              <Button
+                variant="ghost"
+                size="iconSm"
+                onClick={toggleCollapsed}
+                aria-label={t("sidebar.collapse")}
+              >
+                <PanelLeftClose className="h-4 w-4" aria-hidden />
+              </Button>
+            </Tooltip>
+          )}
+        </div>
+      )}
 
       {/* New chat */}
       <div className="px-3 pb-2">
@@ -187,7 +192,7 @@ export function Sidebar() {
     return (
       <aside
         aria-label={t("aria.sidebar")}
-        className="flex h-full shrink-0 flex-col border-r bg-surface transition-[width] duration-200 ease-out"
+        className="flex h-full shrink-0 flex-col overflow-hidden border-r bg-surface transition-[width] duration-200 ease-out"
         style={{
           width: collapsed
             ? "var(--sidebar-rail-width)"

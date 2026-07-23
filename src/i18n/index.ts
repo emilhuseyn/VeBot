@@ -13,14 +13,6 @@ const DICTIONARIES: Record<Locale, Record<TranslationKey, string>> = {
   ru,
 };
 
-export const LOCALES: readonly Locale[] = ["az", "en", "ru"] as const;
-
-export const LOCALE_LABEL_KEYS: Record<Locale, TranslationKey> = {
-  az: "lang.az",
-  en: "lang.en",
-  ru: "lang.ru",
-};
-
 type TranslateParams = Record<string, string | number>;
 
 /** Imperative translation for non-React contexts (toasts, services). */

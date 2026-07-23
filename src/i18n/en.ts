@@ -4,7 +4,6 @@ export const en: Record<TranslationKey, string> = {
   "app.name": "BSU Applicant",
   "app.full": "BSU Applicant Assistant",
   "app.tagline": "Admissions Q&A",
-  "app.disclaimer": "Answers come from the university's information base.",
 
   "sidebar.new": "New chat",
   "sidebar.sections": "Sections",
@@ -40,8 +39,6 @@ export const en: Record<TranslationKey, string> = {
   "common.close": "Close",
   "common.settings": "Settings",
   "common.help": "Help",
-  "common.signOut": "Sign out",
-  "common.language": "Language",
   "common.theme": "Theme",
 
   "settings.title": "Settings",
@@ -52,17 +49,12 @@ export const en: Record<TranslationKey, string> = {
   "settings.theme.light": "Light",
   "settings.theme.dark": "Dark",
   "settings.theme.system": "System",
-  "settings.language": "Language",
   "settings.fontSize": "Font size",
   "settings.fontSize.small": "Small",
   "settings.fontSize.medium": "Medium",
   "settings.fontSize.large": "Large",
-  "settings.sendOnEnter": "Send on Enter",
-  "settings.sendOnEnter.desc":
-    "When on, Enter sends the message and Shift+Enter adds a new line.",
   "settings.about.description":
-    "The BSU Applicant Assistant answers frequently asked questions about admission, documents, scholarships and other topics at Baku State University. Answers come from an official information base; no AI is used.",
-  "settings.about.version": "Version",
+    "Welcome to Baku State University's applicant information service.",
 
   "user.name": "Applicant",
   "user.role": "Guest",
@@ -71,10 +63,6 @@ export const en: Record<TranslationKey, string> = {
   "offline.banner": "No internet connection — continue once you're back online.",
   "toast.copied": "Copied to clipboard",
   "toast.reset": "Chat restarted",
-
-  "lang.az": "Azərbaycan dili",
-  "lang.en": "English",
-  "lang.ru": "Русский",
 
   "aria.chatLog": "Chat messages",
   "aria.sidebar": "Navigation sidebar",

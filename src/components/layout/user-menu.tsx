@@ -1,8 +1,6 @@
 import {
   ChevronsUpDown,
-  Globe,
   HelpCircle,
-  LogOut,
   Monitor,
   Moon,
   Palette,
@@ -11,7 +9,7 @@ import {
 } from "lucide-react";
 import type { Theme } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { useI18n, LOCALES, LOCALE_LABEL_KEYS } from "@/i18n";
+import { useI18n } from "@/i18n";
 import type { TranslationKey } from "@/i18n";
 import { useSettingsStore } from "@/store/settings";
 import { useUiStore } from "@/store/ui";
@@ -21,7 +19,6 @@ import {
   DropdownMenuItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -46,8 +43,6 @@ function initialsFrom(name: string): string {
 
 export function UserMenu({ collapsed }: { collapsed: boolean }) {
   const { t } = useI18n();
-  const locale = useSettingsStore((state) => state.locale);
-  const setLocale = useSettingsStore((state) => state.setLocale);
   const theme = useSettingsStore((state) => state.theme);
   const setTheme = useSettingsStore((state) => state.setTheme);
   const openSettings = useUiStore((state) => state.openSettings);
@@ -104,25 +99,6 @@ export function UserMenu({ collapsed }: { collapsed: boolean }) {
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
-            <Globe className="h-4 w-4 text-text-muted" aria-hidden />
-            {t("common.language")}
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="w-44">
-            <DropdownMenuRadioGroup
-              value={locale}
-              onValueChange={(value) => setLocale(value as typeof locale)}
-            >
-              {LOCALES.map((code) => (
-                <DropdownMenuRadioItem key={code} value={code}>
-                  {t(LOCALE_LABEL_KEYS[code])}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
-
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
             <Palette className="h-4 w-4 text-text-muted" aria-hidden />
             {t("common.theme")}
           </DropdownMenuSubTrigger>
@@ -144,13 +120,6 @@ export function UserMenu({ collapsed }: { collapsed: boolean }) {
         <DropdownMenuItem onSelect={() => openSettings("about")}>
           <HelpCircle aria-hidden />
           {t("common.help")}
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem disabled>
-          <LogOut aria-hidden />
-          {t("common.signOut")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

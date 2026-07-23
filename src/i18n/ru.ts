@@ -4,7 +4,6 @@ export const ru: Record<TranslationKey, string> = {
   "app.name": "БГУ Абитуриент",
   "app.full": "Помощник абитуриента БГУ",
   "app.tagline": "Вопросы и ответы по приёму",
-  "app.disclaimer": "Ответы берутся из информационной базы университета.",
 
   "sidebar.new": "Новый чат",
   "sidebar.sections": "Разделы",
@@ -40,8 +39,6 @@ export const ru: Record<TranslationKey, string> = {
   "common.close": "Закрыть",
   "common.settings": "Настройки",
   "common.help": "Помощь",
-  "common.signOut": "Выйти",
-  "common.language": "Язык",
   "common.theme": "Тема",
 
   "settings.title": "Настройки",
@@ -52,17 +49,12 @@ export const ru: Record<TranslationKey, string> = {
   "settings.theme.light": "Светлая",
   "settings.theme.dark": "Тёмная",
   "settings.theme.system": "Системная",
-  "settings.language": "Язык",
   "settings.fontSize": "Размер шрифта",
   "settings.fontSize.small": "Мелкий",
   "settings.fontSize.medium": "Средний",
   "settings.fontSize.large": "Крупный",
-  "settings.sendOnEnter": "Отправка по Enter",
-  "settings.sendOnEnter.desc":
-    "Если включено, Enter отправляет сообщение, а Shift+Enter добавляет новую строку.",
   "settings.about.description":
-    "Помощник абитуриента БГУ отвечает на часто задаваемые вопросы о приёме, документах, стипендиях и других темах Бакинского государственного университета. Ответы берутся из официальной базы; ИИ не используется.",
-  "settings.about.version": "Версия",
+    "Добро пожаловать в службу информации для абитуриентов Бакинского государственного университета.",
 
   "user.name": "Абитуриент",
   "user.role": "Гость",
@@ -72,10 +64,6 @@ export const ru: Record<TranslationKey, string> = {
     "Нет подключения к интернету — продолжите после восстановления связи.",
   "toast.copied": "Скопировано в буфер обмена",
   "toast.reset": "Чат перезапущен",
-
-  "lang.az": "Azərbaycan dili",
-  "lang.en": "English",
-  "lang.ru": "Русский",
 
   "aria.chatLog": "Сообщения чата",
   "aria.sidebar": "Панель навигации",

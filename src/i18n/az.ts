@@ -9,7 +9,6 @@ export const az = {
   "app.name": "BDU Abituriyent",
   "app.full": "BDU Abituriyent Köməkçisi",
   "app.tagline": "Qəbul üzrə sual-cavab",
-  "app.disclaimer": "Cavablar universitetin məlumat bazasından götürülür.",
 
   // Sidebar
   "sidebar.new": "Yeni söhbət",
@@ -51,8 +50,6 @@ export const az = {
   "common.close": "Bağla",
   "common.settings": "Tənzimləmələr",
   "common.help": "Kömək",
-  "common.signOut": "Çıxış",
-  "common.language": "Dil",
   "common.theme": "Görünüş",
 
   // Settings
@@ -64,17 +61,12 @@ export const az = {
   "settings.theme.light": "İşıqlı",
   "settings.theme.dark": "Qaranlıq",
   "settings.theme.system": "Sistem",
-  "settings.language": "Dil",
   "settings.fontSize": "Şrift ölçüsü",
   "settings.fontSize.small": "Kiçik",
   "settings.fontSize.medium": "Orta",
   "settings.fontSize.large": "Böyük",
-  "settings.sendOnEnter": "Enter ilə göndərmə",
-  "settings.sendOnEnter.desc":
-    "Aktiv olduqda Enter mesajı göndərir, Shift+Enter yeni sətir əlavə edir.",
   "settings.about.description":
-    "BDU Abituriyent Köməkçisi — Bakı Dövlət Universitetinə qəbul, sənədlər, təqaüd və digər mövzular üzrə tez-tez verilən sualların cavablarını təqdim edir. Cavablar rəsmi məlumat bazasından götürülür; süni intellekt istifadə olunmur.",
-  "settings.about.version": "Versiya",
+    "Bakı Dövlət Universiteti abituriyent məlumat xidmətinə xoş gəlmisiniz.",
 
   // User (demo persona)
   "user.name": "Abituriyent",
@@ -85,11 +77,6 @@ export const az = {
   "offline.banner": "İnternet bağlantısı yoxdur — bağlantı bərpa olunanda davam edin.",
   "toast.copied": "Mətn kopyalandı",
   "toast.reset": "Söhbət yeniləndi",
-
-  // Languages (each in its own tongue)
-  "lang.az": "Azərbaycan dili",
-  "lang.en": "English",
-  "lang.ru": "Русский",
 
   // ARIA
   "aria.chatLog": "Söhbət mesajları",

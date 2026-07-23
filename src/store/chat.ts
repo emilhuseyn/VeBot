@@ -32,7 +32,6 @@ interface ChatState {
 
   /** Send the greeting turn if the transcript is empty. */
   start: () => void;
-  sendText: (text: string) => void;
   select: (item: MenuItem) => void;
   /** Drive a built-in nav control (home/back/prev/next) — no user bubble. */
   nav: (navId: string) => void;
@@ -74,12 +73,6 @@ export const useChatStore = create<ChatState>()(
         start: () => {
           if (get().entries.length > 0 || get().loading) return;
           void run({ text: "" });
-        },
-
-        sendText: (text) => {
-          const trimmed = text.trim();
-          if (!trimmed || get().loading) return;
-          void run({ text: trimmed }, userEntry(trimmed));
         },
 
         select: (item) => {

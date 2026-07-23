@@ -87,7 +87,7 @@ function topMenu(page: number): Menu {
   return {
     level: "top",
     title: "Kateqoriyalar",
-    body: "Zəhmət olmasa bir bölmə seçin və ya sualınızı yazın:",
+    body: "Zəhmət olmasa bir bölmə seçin:",
     category_id: null,
     subcategory_id: null,
     page: p.page,

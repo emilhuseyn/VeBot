@@ -7,10 +7,10 @@ import {
 } from "@/components/ui/dialog";
 import { BduMark } from "@/components/ui/logo";
 import { cn } from "@/lib/utils";
-import type { FontSize, Locale, Theme } from "@/lib/types";
+import type { FontSize, Theme } from "@/lib/types";
 import { useSettingsStore } from "@/store/settings";
 import { useUiStore, type SettingsTab } from "@/store/ui";
-import { LOCALES, LOCALE_LABEL_KEYS, useI18n } from "@/i18n";
+import { useI18n } from "@/i18n";
 import type { TranslationKey } from "@/i18n";
 
 const SEGMENT_GROUP_CLASSES =
@@ -61,8 +61,6 @@ function GeneralTab() {
   const { t } = useI18n();
   const theme = useSettingsStore((state) => state.theme);
   const setTheme = useSettingsStore((state) => state.setTheme);
-  const locale = useSettingsStore((state) => state.locale);
-  const setLocale = useSettingsStore((state) => state.setLocale);
 
   const themes: { value: Theme; icon: ReactNode; labelKey: TranslationKey }[] = [
     { value: "light", icon: <Sun aria-hidden />, labelKey: "settings.theme.light" },
@@ -90,21 +88,6 @@ function GeneralTab() {
           ))}
         </div>
       </Row>
-
-      <Row label={t("settings.language")}>
-        <div className={SEGMENT_GROUP_CLASSES}>
-          {LOCALES.map((value: Locale) => (
-            <SegmentButton
-              key={value}
-              selected={locale === value}
-              onClick={() => setLocale(value)}
-            >
-              <span>{t(LOCALE_LABEL_KEYS[value])}</span>
-            </SegmentButton>
-          ))}
-        </div>
-      </Row>
-
     </div>
   );
 }
@@ -113,8 +96,6 @@ function ChatTab() {
   const { t } = useI18n();
   const fontSize = useSettingsStore((state) => state.fontSize);
   const setFontSize = useSettingsStore((state) => state.setFontSize);
-  const sendOnEnter = useSettingsStore((state) => state.sendOnEnter);
-  const setSendOnEnter = useSettingsStore((state) => state.setSendOnEnter);
 
   const sizes: { value: FontSize; labelKey: TranslationKey }[] = [
     { value: "sm", labelKey: "settings.fontSize.small" },
@@ -137,34 +118,6 @@ function ChatTab() {
           ))}
         </div>
       </Row>
-
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <div className="text-sm font-medium">{t("settings.sendOnEnter")}</div>
-          <p className="max-w-[36ch] text-xs leading-relaxed text-text-muted">
-            {t("settings.sendOnEnter.desc")}
-          </p>
-        </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={sendOnEnter}
-          aria-label={t("settings.sendOnEnter")}
-          onClick={() => setSendOnEnter(!sendOnEnter)}
-          className={cn(
-            "relative inline-flex h-6 w-10 shrink-0 items-center rounded-full transition-colors duration-150",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
-            sendOnEnter ? "bg-primary" : "bg-border",
-          )}
-        >
-          <span
-            className={cn(
-              "inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-150",
-              sendOnEnter ? "translate-x-[18px]" : "translate-x-0.5",
-            )}
-          />
-        </button>
-      </div>
     </div>
   );
 }
@@ -175,18 +128,11 @@ function AboutTab() {
     <div className="space-y-4">
       <div className="flex items-center gap-3">
         <BduMark size={40} />
-        <div>
-          <div className="font-semibold">BDU-AI</div>
-          <div className="text-xs text-text-muted">
-            {t("settings.about.version")} 0.1.0
-          </div>
-        </div>
+        <div className="font-semibold">{t("app.full")}</div>
       </div>
       <p className="text-sm leading-relaxed text-text-muted">
         {t("settings.about.description")}
       </p>
-      <hr className="border-t" />
-      <p className="text-xs text-text-muted">{t("app.disclaimer")}</p>
     </div>
   );
 }

@@ -7,12 +7,9 @@ interface SettingsState {
   theme: Theme;
   locale: Locale;
   fontSize: FontSize;
-  /** Enter sends the message; Shift+Enter inserts a newline. */
-  sendOnEnter: boolean;
   setTheme: (theme: Theme) => void;
   setLocale: (locale: Locale) => void;
   setFontSize: (fontSize: FontSize) => void;
-  setSendOnEnter: (sendOnEnter: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -21,21 +18,18 @@ export const useSettingsStore = create<SettingsState>()(
       theme: "system",
       locale: "az",
       fontSize: "md",
-      sendOnEnter: true,
       setTheme: (theme) => set({ theme }),
       setLocale: (locale) => set({ locale }),
       setFontSize: (fontSize) => set({ fontSize }),
-      setSendOnEnter: (sendOnEnter) => set({ sendOnEnter }),
     }),
     {
       name: STORAGE_KEYS.settings,
       version: 1,
       storage: createJSONStorage(() => persistence),
-      partialize: ({ theme, locale, fontSize, sendOnEnter }) => ({
+      partialize: ({ theme, locale, fontSize }) => ({
         theme,
         locale,
         fontSize,
-        sendOnEnter,
       }),
     },
   ),
