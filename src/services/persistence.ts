@@ -13,7 +13,10 @@ export interface PersistenceAdapter {
 
 export const STORAGE_KEYS = {
   settings: "bdu-faq:settings",
-  chat: "bdu-faq:chat",
+  // Key bumped to v2: earlier builds persisted the full chat transcript,
+  // which could linger stale (e.g. showing mock data forever) across
+  // reloads and backend changes. New key guarantees a clean slate.
+  chat: "bdu-faq:chat:v2",
   ui: "bdu-faq:ui",
 } as const;
 

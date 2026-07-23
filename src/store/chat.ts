@@ -101,9 +101,14 @@ export const useChatStore = create<ChatState>()(
     },
     {
       name: STORAGE_KEYS.chat,
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => persistence),
-      partialize: ({ sessionId, entries }) => ({ sessionId, entries }),
+      // Only the session id is persisted. The transcript is NOT persisted:
+      // it must always start with a fresh greeting/top-menu fetch from
+      // whichever backend is currently configured — otherwise a stale
+      // cached transcript (e.g. from mock data, or from before a backend
+      // content change) would linger forever across reloads.
+      partialize: ({ sessionId }) => ({ sessionId }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         state.loading = false;
