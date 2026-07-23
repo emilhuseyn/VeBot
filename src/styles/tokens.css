@@ -1,0 +1,75 @@
+/* ============================================================
+   BDU-AI design tokens — single source of truth for all color,
+   elevation, radius and layout values. No component may use a
+   raw hex value; everything derives from these variables.
+   ============================================================ */
+
+:root {
+  /* Light theme */
+  --bg: #ffffff;
+  --surface: #f7f8fa;
+  --surface-2: #f1f4f9;
+  --border: #e4e8ef;
+  --text: #0e1726;
+  --text-muted: #5a6473;
+  --primary: #0b4da2; /* BDU Blue */
+  --primary-hover: #0a428c;
+  --primary-fg: #ffffff;
+  --accent: #2563eb; /* interactive blue */
+  --gold: #c8a227; /* prestige accent, sparing */
+  --success: #16a34a;
+  --warning: #d97706;
+  --error: #dc2626;
+
+  /* Elevation — subtle, layered */
+  --elevation-sm: 0 1px 2px 0 rgb(14 23 38 / 0.05);
+  --elevation-md:
+    0 2px 6px -1px rgb(14 23 38 / 0.08), 0 1px 2px 0 rgb(14 23 38 / 0.04);
+  --elevation-lg:
+    0 12px 32px -8px rgb(14 23 38 / 0.14), 0 2px 8px -2px rgb(14 23 38 / 0.06);
+
+  /* Layout */
+  --sidebar-width: 272px;
+  --sidebar-rail-width: 64px;
+  --chat-max-width: 768px;
+  --right-panel-width: 360px;
+
+  /* Chat typography scale (driven by the font-size setting) */
+  --chat-font-size: 1rem;
+
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #0b0f14;
+  --surface: #131a22;
+  --surface-2: #1a222c;
+  --border: #232b36;
+  --text: #e6eaf0;
+  --text-muted: #9aa5b4;
+  --primary: #4c8df5; /* lighter blue for dark contrast */
+  --primary-hover: #6aa0f7;
+  --primary-fg: #0b0f14;
+  --accent: #5b8def;
+  --gold: #e0bc4a;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --error: #ef4444;
+
+  /* Softer, lower-opacity shadows in dark */
+  --elevation-sm: 0 1px 2px 0 rgb(0 0 0 / 0.2);
+  --elevation-md:
+    0 2px 6px -1px rgb(0 0 0 / 0.28), 0 1px 2px 0 rgb(0 0 0 / 0.18);
+  --elevation-lg:
+    0 12px 32px -8px rgb(0 0 0 / 0.45), 0 2px 8px -2px rgb(0 0 0 / 0.25);
+
+  color-scheme: dark;
+}
+
+/* Chat font-size setting */
+:root[data-font-size="sm"] {
+  --chat-font-size: 0.9375rem;
+}
+:root[data-font-size="lg"] {
+  --chat-font-size: 1.0625rem;
+}
