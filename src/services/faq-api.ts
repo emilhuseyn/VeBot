@@ -24,7 +24,10 @@ export interface MessageInput {
 export function resolveMediaUrl(url: string): string {
   if (/^(https?:|data:|blob:)/i.test(url)) return url;
   if (USING_MOCK || !RAW_BASE) return url;
-  return `${RAW_BASE}${url.startsWith("/") ? "" : "/"}${url}`;
+  // Filenames can contain spaces (e.g. "esas korpus.png"); encode them so the
+  // URL is valid. Safe whether the backend sends a raw or pre-encoded path.
+  const path = (url.startsWith("/") ? url : `/${url}`).replace(/ /g, "%20");
+  return `${RAW_BASE}${path}`;
 }
 
 const MOCK_MIN_LATENCY_MS = 260;
