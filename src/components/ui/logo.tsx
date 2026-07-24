@@ -18,17 +18,26 @@ export function BduMark({
 }) {
   const [failed, setFailed] = useState(false);
   if (failed) return <GeometricMark className={className} size={size} />;
+  // The emblem is dark linework on transparent, made for a light background —
+  // so it's placed on a white disc, which keeps it crisp in BOTH themes
+  // (it would otherwise vanish on the dark surface).
   return (
-    <img
-      src={LOGO_SRC}
-      width={size}
-      height={size}
-      alt=""
+    <span
       aria-hidden
-      decoding="async"
-      onError={() => setFailed(true)}
-      className={cn("shrink-0 object-contain", className)}
-    />
+      style={{ width: size, height: size }}
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-black/5",
+        className,
+      )}
+    >
+      <img
+        src={LOGO_SRC}
+        alt=""
+        decoding="async"
+        onError={() => setFailed(true)}
+        className="h-[86%] w-[86%] object-contain"
+      />
+    </span>
   );
 }
 
@@ -80,15 +89,5 @@ export function BduWordmark({ className }: { className?: string }) {
 
 /** Round assistant avatar shown next to bot messages. */
 export function AssistantAvatar({ className }: { className?: string }) {
-  return (
-    <div
-      aria-hidden
-      className={cn(
-        "flex h-7 w-7 shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-bg",
-        className,
-      )}
-    >
-      <BduMark size={28} className="rounded-full" />
-    </div>
-  );
+  return <BduMark size={28} className={cn("shadow-sm", className)} />;
 }
