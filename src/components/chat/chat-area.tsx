@@ -21,6 +21,9 @@ export function ChatArea() {
   const [pinned, setPinned] = useState(true);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const pinnedRef = useRef(true);
+  // Drives the "bring the question to the top" behaviour for each new turn.
+  const focusUserIdRef = useRef<string | null>(null);
+  const prevLastUserIdRef = useRef<string | null>(null);
 
   // Send the greeting turn once history has rehydrated and is empty.
   useEffect(() => {
@@ -44,17 +47,54 @@ export function ChatArea() {
   }, []);
 
   const entryCount = entries.length;
-  const lastText =
-    entries[entries.length - 1]?.role === "user"
-      ? "user"
-      : entries[entries.length - 1]?.id ?? "";
+  const lastEntry = entries[entries.length - 1];
+  const lastText = lastEntry?.role === "user" ? "user" : lastEntry?.id ?? "";
 
-  // Keep pinned to newest content as the transcript grows.
+  // Id of the most recent user message (the tapped question / typed text).
+  let lastUserId: string | null = null;
+  for (let i = entries.length - 1; i >= 0; i -= 1) {
+    const e = entries[i];
+    if (e?.role === "user") {
+      lastUserId = e.id;
+      break;
+    }
+  }
+
   useLayoutEffect(() => {
-    if (!pinnedRef.current) return;
     const el = scrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [entryCount, lastText, loading]);
+    if (!el) return;
+
+    // A new question was sent → show it + the typing indicator at the bottom
+    // for now, and remember to re-focus it once the reply lands.
+    if (lastUserId && lastUserId !== prevLastUserIdRef.current) {
+      prevLastUserIdRef.current = lastUserId;
+      focusUserIdRef.current = lastUserId;
+      el.scrollTop = el.scrollHeight;
+      pinnedRef.current = true;
+      setPinned(true);
+      return;
+    }
+
+    // The reply for the focused turn has arrived → scroll that question up to
+    // the top so a long answer is read from its beginning, instead of jumping
+    // to the very bottom (the re-shown menu, past the answer).
+    if (focusUserIdRef.current && !loading) {
+      const id = focusUserIdRef.current;
+      focusUserIdRef.current = null;
+      const node = el.querySelector<HTMLElement>(`[data-entry-id="${id}"]`);
+      if (node) {
+        const offset =
+          node.getBoundingClientRect().top - el.getBoundingClientRect().top;
+        el.scrollTop = el.scrollTop + offset - 12;
+        pinnedRef.current = false;
+        setPinned(false);
+        return;
+      }
+    }
+
+    // Default: keep pinned to the bottom (initial greeting, or user at bottom).
+    if (pinnedRef.current) el.scrollTop = el.scrollHeight;
+  }, [entryCount, lastText, loading, lastUserId]);
 
   if (!hydrated) {
     return (

@@ -40,6 +40,7 @@ export function Transcript({ entries }: { entries: ChatEntry[] }) {
           return (
             <div
               key={entry.id}
+              data-entry-id={entry.id}
               className="flex justify-end motion-safe:animate-rise-in"
             >
               <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-surface-2 px-4 py-2.5 text-text">

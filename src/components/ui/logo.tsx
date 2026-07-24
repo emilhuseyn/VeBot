@@ -1,13 +1,39 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
+/** Official BDU emblem, served from public/. Swap the file to change the logo. */
+const LOGO_SRC = "/bdu-logo.png";
+
 /**
- * BDU-AI geometric mark — an open book with a gold spark.
- *
- * OFFICIAL_BDU_EMBLEM_SLOT: to use the official BDU emblem, replace the
- * SVG contents below with the official asset (keep the viewBox at 0 0 32 32
- * so every size keeps working).
+ * BDU mark — renders the official emblem from `public/bdu-logo.png`. If that
+ * asset is missing (or fails to load) it falls back to a clean geometric mark
+ * so the UI never breaks.
  */
 export function BduMark({
+  className,
+  size = 32,
+}: {
+  className?: string;
+  size?: number;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return <GeometricMark className={className} size={size} />;
+  return (
+    <img
+      src={LOGO_SRC}
+      width={size}
+      height={size}
+      alt=""
+      aria-hidden
+      decoding="async"
+      onError={() => setFailed(true)}
+      className={cn("shrink-0 object-contain", className)}
+    />
+  );
+}
+
+/** Fallback mark used until the official emblem asset is in place. */
+function GeometricMark({
   className,
   size = 32,
 }: {
@@ -58,7 +84,7 @@ export function AssistantAvatar({ className }: { className?: string }) {
     <div
       aria-hidden
       className={cn(
-        "flex h-7 w-7 shrink-0 select-none items-center justify-center overflow-hidden rounded-full",
+        "flex h-7 w-7 shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-bg",
         className,
       )}
     >

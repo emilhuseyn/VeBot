@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
-import { ImageOff, Maximize2 } from "lucide-react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { ImageOff, Loader2, Maximize2, X } from "lucide-react";
 import type { ChatImage } from "@/lib/types";
 import { resolveMediaUrl } from "@/services/faq-api";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ function ChatImageCard({ image }: { image: ChatImage }) {
   const { t } = useI18n();
   const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
+  const [open, setOpen] = useState(false);
   const src = resolveMediaUrl(image.url);
 
   // Catch images that finished decoding before React bound onLoad (data URIs,
@@ -48,12 +50,13 @@ function ChatImageCard({ image }: { image: ChatImage }) {
           className="absolute inset-0 min-h-40 bg-surface-2 motion-safe:animate-pulse"
         />
       )}
-      <a
-        href={src}
-        target="_blank"
-        rel="noopener noreferrer"
+      {/* A button (not a link) — clicking opens the in-app lightbox instead of
+          navigating away to the raw image URL. */}
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
         aria-label={t("chat.imageOpen")}
-        className="relative block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/60"
+        className="relative block cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/60"
       >
         <img
           ref={imgRef}
@@ -71,12 +74,95 @@ function ChatImageCard({ image }: { image: ChatImage }) {
         >
           <Maximize2 className="h-3.5 w-3.5" />
         </span>
-      </a>
+      </button>
       {image.caption && (
         <figcaption className="border-t px-3 py-2 text-xs leading-relaxed text-text-muted">
           {image.caption}
         </figcaption>
       )}
+
+      <Lightbox
+        open={open}
+        onOpenChange={setOpen}
+        src={src}
+        alt={image.alt}
+        caption={image.caption}
+      />
     </figure>
+  );
+}
+
+/** Full-screen image viewer. Closes on backdrop click, the ✕ button, or Esc. */
+function Lightbox({
+  open,
+  onOpenChange,
+  src,
+  alt,
+  caption,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  src: string;
+  alt?: string;
+  caption?: string;
+}) {
+  const { t } = useI18n();
+  const [ready, setReady] = useState(false);
+
+  const imgRef = useCallback((node: HTMLImageElement | null) => {
+    if (node && node.complete && node.naturalWidth > 0) setReady(true);
+  }, []);
+
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm motion-safe:animate-fade-in" />
+        <Dialog.Content
+          aria-describedby={undefined}
+          onClick={() => onOpenChange(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 outline-none sm:p-10"
+        >
+          <Dialog.Title className="sr-only">
+            {alt || t("chat.imageOpen")}
+          </Dialog.Title>
+
+          {!ready && (
+            <Loader2
+              className="pointer-events-none absolute h-7 w-7 animate-spin text-white/70"
+              aria-hidden
+            />
+          )}
+
+          {/* Clicking the image itself should NOT close the viewer. */}
+          <figure
+            className="m-0 flex max-h-full max-w-full flex-col items-center"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <img
+              ref={imgRef}
+              src={src}
+              alt={alt ?? ""}
+              onLoad={() => setReady(true)}
+              className={cn(
+                "max-h-[86vh] max-w-[95vw] rounded-lg object-contain shadow-2xl transition-opacity duration-200",
+                ready ? "opacity-100 motion-safe:animate-rise-in" : "opacity-0",
+              )}
+            />
+            {caption && (
+              <figcaption className="mt-3 max-w-[95vw] text-center text-sm text-white/85">
+                {caption}
+              </figcaption>
+            )}
+          </figure>
+
+          <Dialog.Close
+            aria-label={t("common.close")}
+            className="fixed right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white backdrop-blur-sm transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+          >
+            <X className="h-5 w-5" aria-hidden />
+          </Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
