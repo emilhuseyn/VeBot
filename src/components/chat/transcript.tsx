@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy } from "lucide-react";
-import type { ChatEntry } from "@/lib/types";
+import type { ChatEntry, ChatImage } from "@/lib/types";
 import { AssistantAvatar } from "@/components/ui/logo";
 import { Tooltip } from "@/components/ui/tooltip";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { MenuBubble } from "@/components/chat/menu-bubble";
+import { ChatImageGrid } from "@/components/chat/chat-image";
 import { useChatStore } from "@/store/chat";
 import { useCopyToClipboard } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
@@ -51,7 +52,7 @@ export function Transcript({ entries }: { entries: ChatEntry[] }) {
         return (
           <BotRow key={entry.id} showAvatar={firstOfBotGroup}>
             {entry.kind === "text" ? (
-              <BotText text={entry.text} />
+              <BotText text={entry.text} images={entry.images} />
             ) : (
               <MenuBubble
                 menu={entry.menu}
@@ -88,18 +89,23 @@ function BotRow({
   );
 }
 
-function BotText({ text }: { text: string }) {
+function BotText({ text, images }: { text: string; images?: ChatImage[] }) {
   const { t } = useI18n();
   const { copied, copy } = useCopyToClipboard();
+  const hasText = text.trim().length > 0;
   return (
     <div className="group">
-      <div
-        className="whitespace-pre-wrap break-words leading-relaxed text-text"
-        style={{ fontSize: "var(--chat-font-size)" }}
-      >
-        {text}
-      </div>
-      <div className="mt-1 flex h-7 items-center opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100">
+      {hasText && (
+        <div
+          className="whitespace-pre-wrap break-words leading-relaxed text-text"
+          style={{ fontSize: "var(--chat-font-size)" }}
+        >
+          {text}
+        </div>
+      )}
+      {images && images.length > 0 && <ChatImageGrid images={images} />}
+      {hasText && (
+        <div className="mt-1 flex h-7 items-center opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100">
         <Tooltip content={copied ? t("chat.copied") : t("chat.copy")}>
           <button
             type="button"
@@ -134,7 +140,8 @@ function BotText({ text }: { text: string }) {
             </AnimatePresence>
           </button>
         </Tooltip>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -173,6 +173,13 @@ function menuForState(state: SessionState): Menu {
 const menuMsg = (menu: Menu): WebMessage => ({ type: "menu", menu });
 const textMsg = (text: string): WebMessage => ({ type: "text", text });
 
+/** Answer message, carrying any images attached to the FAQ entry. */
+function answerMsg(q: FaqQuestion): WebMessage {
+  return q.images && q.images.length > 0
+    ? { type: "text", text: q.answer, images: q.images }
+    : { type: "text", text: q.answer };
+}
+
 function normalize(text: string): string {
   return text.trim().toLocaleLowerCase("az");
 }
@@ -266,7 +273,7 @@ function handleSelection(
     };
     sessions.set(sessionId, next);
     return {
-      messages: [textMsg(qEntry.q.answer), menuMsg(menuForState(next))],
+      messages: [answerMsg(qEntry.q), menuMsg(menuForState(next))],
     };
   }
 
@@ -297,7 +304,7 @@ export function mockRespond(
   if (hit) {
     sessions.set(sessionId, hit.state);
     return {
-      messages: [textMsg(hit.q.answer), menuMsg(menuForState(hit.state))],
+      messages: [answerMsg(hit.q), menuMsg(menuForState(hit.state))],
     };
   }
 

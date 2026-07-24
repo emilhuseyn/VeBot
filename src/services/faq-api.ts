@@ -16,6 +16,17 @@ export interface MessageInput {
   selection_id?: string | null;
 }
 
+/**
+ * Resolve an image URL from the backend. Absolute (http/data) URLs pass
+ * through; a relative path (e.g. "/media/foo.png") is joined onto the API
+ * origin so backend-hosted images load correctly.
+ */
+export function resolveMediaUrl(url: string): string {
+  if (/^(https?:|data:|blob:)/i.test(url)) return url;
+  if (USING_MOCK || !RAW_BASE) return url;
+  return `${RAW_BASE}${url.startsWith("/") ? "" : "/"}${url}`;
+}
+
 const MOCK_MIN_LATENCY_MS = 260;
 
 const sleep = (ms: number): Promise<void> =>

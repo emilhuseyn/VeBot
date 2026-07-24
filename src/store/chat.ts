@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { ChatEntry, MenuItem, WebMessage } from "@/lib/types";
+import type { ChatEntry, WebMessage } from "@/lib/types";
+import type { MenuItem } from "@/lib/types";
 import { uid } from "@/lib/utils";
+import { extractImages, stripImageSyntax } from "@/lib/images";
 import { resetSession, sendMessage, type MessageInput } from "@/services/faq-api";
 import { persistence, STORAGE_KEYS } from "@/services/persistence";
 
@@ -10,10 +12,24 @@ let lastInput: MessageInput | null = null;
 
 function toBotEntry(message: WebMessage): ChatEntry {
   const base = { id: uid(), role: "bot" as const, createdAt: Date.now() };
-  if (message.type === "text") {
-    return { ...base, kind: "text", text: message.text };
+  if (message.type === "menu") {
+    return { ...base, kind: "menu", menu: message.menu };
   }
-  return { ...base, kind: "menu", menu: message.menu };
+  // A text message — or a dedicated image message — may carry image(s).
+  const images = extractImages(message);
+  const rawText =
+    message.type === "text"
+      ? message.text
+      : typeof message.caption === "string"
+        ? message.caption
+        : "";
+  const text = images.length > 0 ? stripImageSyntax(rawText) : rawText;
+  return {
+    ...base,
+    kind: "text",
+    text,
+    ...(images.length > 0 ? { images } : {}),
+  };
 }
 
 function userEntry(text: string): ChatEntry {

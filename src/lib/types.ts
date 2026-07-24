@@ -27,12 +27,51 @@ export interface Menu {
   items: MenuItem[];
 }
 
+/**
+ * Optional image fields the backend MAY attach to a message once images go
+ * live. The exact shape isn't finalized on the backend yet, so we accept every
+ * common convention (see `extractImages` in lib/images.ts) rather than commit
+ * to one. All fields are optional and ignored when absent.
+ */
+export interface RawImageFields {
+  image?: string | null;
+  image_url?: string | null;
+  imageUrl?: string | null;
+  images?:
+    | Array<
+        | string
+        | {
+            url?: string;
+            src?: string;
+            image?: string;
+            image_url?: string;
+            alt?: string;
+            caption?: string;
+          }
+      >
+    | null;
+}
+
 export type WebMessage =
-  | { type: "text"; text: string }
-  | { type: "menu"; menu: Menu };
+  | ({ type: "text"; text: string } & RawImageFields)
+  | ({ type: "menu"; menu: Menu } & RawImageFields)
+  | ({
+      type: "image";
+      url?: string;
+      src?: string;
+      alt?: string;
+      caption?: string;
+    } & RawImageFields);
 
 export interface WebMessageResponse {
   messages: WebMessage[];
+}
+
+/** A resolved image ready to render in the transcript. */
+export interface ChatImage {
+  url: string;
+  alt?: string;
+  caption?: string;
 }
 
 /** Built-in navigation selection ids understood by the backend engine. */
@@ -52,6 +91,7 @@ export type ChatEntry =
       role: "bot";
       kind: "text";
       text: string;
+      images?: ChatImage[];
       createdAt: number;
     }
   | {

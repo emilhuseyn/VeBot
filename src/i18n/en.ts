@@ -27,6 +27,8 @@ export const en: Record<TranslationKey, string> = {
   "chat.retry": "Try again",
   "chat.copy": "Copy",
   "chat.copied": "Copied",
+  "chat.imageOpen": "Open image full size",
+  "chat.imageFailed": "Image failed to load",
 
   "nav.home": "Main menu",
   "nav.back": "Back",

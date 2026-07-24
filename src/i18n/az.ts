@@ -36,6 +36,8 @@ export const az = {
   "chat.retry": "Yenidən cəhd et",
   "chat.copy": "Kopyala",
   "chat.copied": "Kopyalandı",
+  "chat.imageOpen": "Şəkli tam ölçüdə aç",
+  "chat.imageFailed": "Şəkil yüklənmədi",
 
   // Menu navigation
   "nav.home": "Əsas menyu",
