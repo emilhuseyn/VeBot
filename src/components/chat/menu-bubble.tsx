@@ -28,10 +28,17 @@ export function MenuBubble({
 }) {
   const { t } = useI18n();
   const showHome = menu.level !== "top";
-  const hasNav = menu.has_back || showHome || menu.has_prev || menu.has_next;
+  // In navOnly (post-answer) mode always offer Back — it re-opens the question
+  // list so the user can pick another question. The backend omits has_back for
+  // flat categories, which would otherwise leave only Home. Back re-selects the
+  // sub-category (or flat category) id, which re-shows its full question list.
+  const showBack = navOnly || menu.has_back;
+  const backTarget =
+    navOnly ? menu.subcategory_id ?? menu.category_id ?? NAV.back : NAV.back;
+  const hasNav = showBack || showHome || menu.has_prev || menu.has_next;
   // navOnly menus always show their controls (even in history, muted); normal
   // menus only show controls while they are the interactive (latest) menu.
-  const showNav = navOnly ? hasNav : interactive && hasNav;
+  const showNav = navOnly ? true : interactive && hasNav;
 
   return (
     <div className="flex flex-col gap-3">
@@ -85,12 +92,12 @@ export function MenuBubble({
           role="group"
           aria-label={t("aria.menuOptions")}
         >
-          {menu.has_back && (
+          {showBack && (
             <NavChip
               icon={<ArrowLeft className="h-4 w-4" aria-hidden />}
               label={t("nav.back")}
               disabled={!interactive}
-              onClick={() => onNav(NAV.back)}
+              onClick={() => onNav(backTarget)}
             />
           )}
           {showHome && (
@@ -102,12 +109,12 @@ export function MenuBubble({
             />
           )}
           <div className="flex-1" />
-          {menu.total_pages > 1 && (
+          {!navOnly && menu.total_pages > 1 && (
             <span className="px-1 text-xs tabular-nums text-text-muted">
               {t("nav.page", { page: menu.page + 1, total: menu.total_pages })}
             </span>
           )}
-          {menu.has_prev && (
+          {!navOnly && menu.has_prev && (
             <NavChip
               icon={<ArrowLeft className="h-4 w-4" aria-hidden />}
               label={t("nav.prev")}
@@ -115,7 +122,7 @@ export function MenuBubble({
               onClick={() => onNav(NAV.prev)}
             />
           )}
-          {menu.has_next && (
+          {!navOnly && menu.has_next && (
             <NavChip
               icon={<ArrowRight className="h-4 w-4" aria-hidden />}
               label={t("nav.next")}
