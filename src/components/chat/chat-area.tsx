@@ -20,11 +20,9 @@ export function ChatArea() {
 
   const [pinned, setPinned] = useState(true);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  // Whether the view sticks to the bottom: true after any tap, false for the
+  // first greeting and whenever the user scrolls up to read history.
   const pinnedRef = useRef(true);
-  // The first entry added by the current turn — scrolled to the top once the
-  // turn settles, so new content (question or menu) is read from its start.
-  const focusIdRef = useRef<string | null>(null);
-  const prevCountRef = useRef(0);
 
   // Send the greeting turn once history has rehydrated and is empty.
   useEffect(() => {
@@ -48,43 +46,40 @@ export function ChatArea() {
   }, []);
 
   const entryCount = entries.length;
+  const hasUserTurn = entries.some((e) => e.role === "user");
 
+  // After a tap the view sticks to the bottom, so the answer and its
+  // Back / Home controls are visible. The first greeting stays at the top so
+  // it reads from the beginning (this is what fixed the mobile first load
+  // opening scrolled to the bottom of a long category list).
   useLayoutEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
-    // Remember the first entry this turn appended, so we can bring it to the
-    // top once the turn settles (the question for a tap; the new menu for a
-    // Home/Back/paging nav). Never overwritten mid-turn.
-    if (entryCount > prevCountRef.current) {
-      if (focusIdRef.current === null) {
-        const firstNew = entries[prevCountRef.current];
-        if (firstNew) focusIdRef.current = firstNew.id;
-      }
-      prevCountRef.current = entryCount;
-    }
-
-    // While the reply is in flight, keep the freshly-sent message and the
-    // typing indicator in view at the bottom.
-    if (loading) {
-      el.scrollTop = el.scrollHeight;
+    if (!loading && !hasUserTurn) {
+      el.scrollTop = 0;
+      pinnedRef.current = false;
+      setPinned(false);
       return;
     }
 
-    // Turn settled → scroll its first new entry just below the top, so content
-    // is read from its beginning instead of jumping to the very bottom (the
-    // re-shown menu). Also fixes the first load opening scrolled to the bottom.
-    const focusId = focusIdRef.current;
-    if (focusId) {
-      focusIdRef.current = null;
-      const node = el.querySelector<HTMLElement>(`[data-entry-id="${focusId}"]`);
-      if (node) {
-        const offset =
-          node.getBoundingClientRect().top - el.getBoundingClientRect().top;
-        el.scrollTop = Math.max(0, el.scrollTop + offset - 12);
-      }
-    }
-  }, [entryCount, loading]);
+    el.scrollTop = el.scrollHeight;
+    pinnedRef.current = true;
+    setPinned(true);
+  }, [entryCount, loading, hasUserTurn]);
+
+  // Keep the view pinned to the bottom as late-loading content (e.g. answer
+  // images) grows the transcript, so it never settles just above the end.
+  useEffect(() => {
+    const el = scrollRef.current;
+    const content = el?.firstElementChild;
+    if (!el || !content) return;
+    const ro = new ResizeObserver(() => {
+      if (pinnedRef.current) el.scrollTop = el.scrollHeight;
+    });
+    ro.observe(content);
+    return () => ro.disconnect();
+  }, [hydrated]);
 
   if (!hydrated) {
     return (
