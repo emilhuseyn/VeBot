@@ -50,14 +50,24 @@ export function Transcript({ entries }: { entries: ChatEntry[] }) {
           );
         }
 
+        // A question list re-shown right AFTER an answer (its previous entry is
+        // the answer text) is redundant — collapse it to just the Back / Home
+        // controls instead of repeating every question.
+        const navOnly =
+          entry.kind === "menu" &&
+          entry.menu.level === "sub" &&
+          prev?.role === "bot" &&
+          prev.kind === "text";
+
         return (
-          <BotRow key={entry.id} showAvatar={firstOfBotGroup}>
+          <BotRow key={entry.id} entryId={entry.id} showAvatar={firstOfBotGroup}>
             {entry.kind === "text" ? (
               <BotText text={entry.text} images={entry.images} />
             ) : (
               <MenuBubble
                 menu={entry.menu}
                 interactive={entry.id === lastMenuId && !loading}
+                navOnly={navOnly}
                 onSelect={select}
                 onNav={nav}
               />
@@ -77,13 +87,18 @@ export function Transcript({ entries }: { entries: ChatEntry[] }) {
 
 function BotRow({
   showAvatar,
+  entryId,
   children,
 }: {
   showAvatar: boolean;
+  entryId?: string;
   children: ReactNode;
 }) {
   return (
-    <div className="flex gap-3 motion-safe:animate-rise-in">
+    <div
+      data-entry-id={entryId}
+      className="flex gap-3 motion-safe:animate-rise-in"
+    >
       <div className="w-7 shrink-0">{showAvatar ? <AssistantAvatar /> : null}</div>
       <div className="min-w-0 flex-1">{children}</div>
     </div>

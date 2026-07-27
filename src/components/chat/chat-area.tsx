@@ -21,9 +21,10 @@ export function ChatArea() {
   const [pinned, setPinned] = useState(true);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const pinnedRef = useRef(true);
-  // Drives the "bring the question to the top" behaviour for each new turn.
-  const focusUserIdRef = useRef<string | null>(null);
-  const prevLastUserIdRef = useRef<string | null>(null);
+  // The first entry added by the current turn — scrolled to the top once the
+  // turn settles, so new content (question or menu) is read from its start.
+  const focusIdRef = useRef<string | null>(null);
+  const prevCountRef = useRef(0);
 
   // Send the greeting turn once history has rehydrated and is empty.
   useEffect(() => {
@@ -47,54 +48,43 @@ export function ChatArea() {
   }, []);
 
   const entryCount = entries.length;
-  const lastEntry = entries[entries.length - 1];
-  const lastText = lastEntry?.role === "user" ? "user" : lastEntry?.id ?? "";
-
-  // Id of the most recent user message (the tapped question / typed text).
-  let lastUserId: string | null = null;
-  for (let i = entries.length - 1; i >= 0; i -= 1) {
-    const e = entries[i];
-    if (e?.role === "user") {
-      lastUserId = e.id;
-      break;
-    }
-  }
 
   useLayoutEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
-    // A new question was sent → show it + the typing indicator at the bottom
-    // for now, and remember to re-focus it once the reply lands.
-    if (lastUserId && lastUserId !== prevLastUserIdRef.current) {
-      prevLastUserIdRef.current = lastUserId;
-      focusUserIdRef.current = lastUserId;
+    // Remember the first entry this turn appended, so we can bring it to the
+    // top once the turn settles (the question for a tap; the new menu for a
+    // Home/Back/paging nav). Never overwritten mid-turn.
+    if (entryCount > prevCountRef.current) {
+      if (focusIdRef.current === null) {
+        const firstNew = entries[prevCountRef.current];
+        if (firstNew) focusIdRef.current = firstNew.id;
+      }
+      prevCountRef.current = entryCount;
+    }
+
+    // While the reply is in flight, keep the freshly-sent message and the
+    // typing indicator in view at the bottom.
+    if (loading) {
       el.scrollTop = el.scrollHeight;
-      pinnedRef.current = true;
-      setPinned(true);
       return;
     }
 
-    // The reply for the focused turn has arrived → scroll that question up to
-    // the top so a long answer is read from its beginning, instead of jumping
-    // to the very bottom (the re-shown menu, past the answer).
-    if (focusUserIdRef.current && !loading) {
-      const id = focusUserIdRef.current;
-      focusUserIdRef.current = null;
-      const node = el.querySelector<HTMLElement>(`[data-entry-id="${id}"]`);
+    // Turn settled → scroll its first new entry just below the top, so content
+    // is read from its beginning instead of jumping to the very bottom (the
+    // re-shown menu). Also fixes the first load opening scrolled to the bottom.
+    const focusId = focusIdRef.current;
+    if (focusId) {
+      focusIdRef.current = null;
+      const node = el.querySelector<HTMLElement>(`[data-entry-id="${focusId}"]`);
       if (node) {
         const offset =
           node.getBoundingClientRect().top - el.getBoundingClientRect().top;
-        el.scrollTop = el.scrollTop + offset - 12;
-        pinnedRef.current = false;
-        setPinned(false);
-        return;
+        el.scrollTop = Math.max(0, el.scrollTop + offset - 12);
       }
     }
-
-    // Default: keep pinned to the bottom (initial greeting, or user at bottom).
-    if (pinnedRef.current) el.scrollTop = el.scrollHeight;
-  }, [entryCount, lastText, loading, lastUserId]);
+  }, [entryCount, loading]);
 
   if (!hydrated) {
     return (
