@@ -97,7 +97,9 @@ export function ChatArea() {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="min-h-0 flex-1 overflow-y-auto"
+        // @container: the category tile grid sizes itself against this element's
+        // width (not the viewport), so it adapts when the sidebar collapses.
+        className="@container min-h-0 flex-1 overflow-y-auto"
       >
         <div className="mx-auto w-full max-w-[var(--chat-max-width)] px-4">
           <Transcript entries={entries} />
