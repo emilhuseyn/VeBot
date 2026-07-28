@@ -9,6 +9,7 @@ import { MenuBubble } from "@/components/chat/menu-bubble";
 import { ChatImageGrid } from "@/components/chat/chat-image";
 import { useChatStore } from "@/store/chat";
 import { useCopyToClipboard } from "@/lib/hooks";
+import { linkify } from "@/lib/linkify";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 
@@ -116,7 +117,7 @@ function BotText({ text, images }: { text: string; images?: ChatImage[] }) {
           className="whitespace-pre-wrap break-words leading-relaxed text-text"
           style={{ fontSize: "var(--chat-font-size)" }}
         >
-          {text}
+          {linkify(text)}
         </div>
       )}
       {images && images.length > 0 && <ChatImageGrid images={images} />}
