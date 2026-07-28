@@ -323,7 +323,9 @@ export const useChatStore = create<ChatState>()(
         cancelOperator: (note) => {
           if (get().operatorStep === "idle") return;
           set((s) => ({
-            entries: [...s.entries, localBotEntry(note)],
+            // Like the success note, cancelling ends the hand-off with no
+            // control in reach — carry an "Əsas menyu" chip on the note.
+            entries: [...s.entries, localBotEntry(note, { showHome: true })],
             operatorStep: "idle",
             operatorPhone: "",
           }));

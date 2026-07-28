@@ -21,6 +21,11 @@ export const az = {
   "topbar.restart": "Söhbəti yenilə",
 
   // Chat
+  // Shown instead of the backend's top-menu body: the web widget owns its
+  // greeting copy (and drops the "pick a category" line — the tiles below
+  // already say that).
+  "chat.greeting":
+    "Salam! 👋 Bakı Dövlət Universitetinin abituriyentlər üçün süni intellekt əsaslı məlumat köməkçisinə xoş gəlmisiniz. Universitet, ixtisas seçimi, qəbul qaydaları və tələbə həyatı ilə bağlı bütün suallarınızda sizə dəstək olmağa hazırıq.",
   "chat.loading": "Cavab hazırlanır…",
   "chat.scrollToBottom": "Aşağı keç",
   "chat.error": "Bağlantı xətası baş verdi.",

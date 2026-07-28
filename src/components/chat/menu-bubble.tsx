@@ -132,10 +132,13 @@ export function MenuBubble({
   return (
     <div className="flex flex-col gap-2.5">
       {!navOnly && menu.body && (
-        // The top menu's body is the actual greeting, so it reads at full size.
-        // Every other body is "‹breadcrumb›\n\nSual seçin:" — the breadcrumb
-        // just repeats the option the visitor tapped a bubble earlier and the
-        // prompt states the obvious, so it collapses to one muted caption line.
+        // The top menu's greeting is the widget's own copy (t("chat.greeting")),
+        // not the backend body — the web widget owns this line, and the
+        // backend's "pick a category" prompt is dropped as the tiles below
+        // already say that. Every other body is "‹breadcrumb›\n\nSual seçin:" —
+        // the breadcrumb just repeats the option the visitor tapped a bubble
+        // earlier and the prompt states the obvious, so it collapses to one
+        // muted caption line.
         <p
           className={cn(
             "whitespace-pre-wrap break-words",
@@ -149,7 +152,7 @@ export function MenuBubble({
               : undefined
           }
         >
-          {menu.level === "top" ? menu.body : compactBody(menu.body)}
+          {menu.level === "top" ? t("chat.greeting") : compactBody(menu.body)}
         </p>
       )}
 

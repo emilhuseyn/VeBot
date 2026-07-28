@@ -16,6 +16,7 @@ export function ChatArea() {
   const hydrated = useChatStore((s) => s.hydrated);
   const loading = useChatStore((s) => s.loading);
   const error = useChatStore((s) => s.error);
+  const operatorStep = useChatStore((s) => s.operatorStep);
   const start = useChatStore((s) => s.start);
   const retry = useChatStore((s) => s.retry);
 
@@ -50,6 +51,7 @@ export function ChatArea() {
   const hasUserTurn = entries.some((e) => e.role === "user");
   const lastEntryRole = entries[entries.length - 1]?.role;
   const prevEntryCountRef = useRef(0);
+  const prevOperatorStepRef = useRef(operatorStep);
 
   // After a tap the view sticks to the bottom, so the answer and its
   // Back / Home controls are visible. The first greeting stays at the top so
@@ -60,6 +62,8 @@ export function ChatArea() {
     if (!el) return;
     const prevCount = prevEntryCountRef.current;
     prevEntryCountRef.current = entryCount;
+    const operatorStepChanged = operatorStep !== prevOperatorStepRef.current;
+    prevOperatorStepRef.current = operatorStep;
 
     if (!loading && !hasUserTurn) {
       el.scrollTop = 0;
@@ -71,7 +75,9 @@ export function ChatArea() {
     const grew = entryCount > prevCount;
 
     // The visitor just acted — snap to their message and follow the reply.
-    if (grew && lastEntryRole === "user") {
+    // Every operator-step transition (start, phone, cancel, result) is such
+    // an act too, even though it appends bot bubbles rather than user ones.
+    if ((grew && lastEntryRole === "user") || operatorStepChanged) {
       pinnedRef.current = true;
       setPinned(true);
       el.scrollTop = el.scrollHeight;
@@ -84,7 +90,7 @@ export function ChatArea() {
     if (grew && pinnedRef.current) {
       el.scrollTop = el.scrollHeight;
     }
-  }, [entryCount, loading, hasUserTurn, lastEntryRole]);
+  }, [entryCount, loading, hasUserTurn, lastEntryRole, operatorStep]);
 
   // Keep the view pinned to the bottom as late content growth moves the end:
   // the transcript growing (answer images loading in), or the bottom bar

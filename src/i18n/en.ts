@@ -13,6 +13,8 @@ export const en: Record<TranslationKey, string> = {
   "topbar.title": "Applicant Assistant",
   "topbar.restart": "Restart chat",
 
+  "chat.greeting":
+    "Hello! 👋 Welcome to Baku State University's AI-powered information assistant for applicants. We're here to help with all your questions about the university, choosing a major, admission rules and student life.",
   "chat.loading": "Preparing a reply…",
   "chat.scrollToBottom": "Scroll to bottom",
   "chat.error": "A connection error occurred.",
