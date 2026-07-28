@@ -1,4 +1,5 @@
 import type { MenuItem, WebMessageResponse } from "@/lib/types";
+import { getI18n } from "@/i18n";
 import { mockReset, mockRespond, mockTopCategories } from "./faq-mock";
 
 /**
@@ -67,9 +68,19 @@ export async function sendOperatorRequest(
 ): Promise<OperatorRequestResult> {
   if (USING_MOCK) {
     await sleep(MOCK_MIN_LATENCY_MS + Math.random() * 200);
+    // Deterministic failure hook so the whole failure path (return to the
+    // message step, draft retention, Turnstile reset) can be exercised
+    // offline: include "#err" anywhere in the question.
+    if (input.message.includes("#err")) {
+      return {
+        ok: false,
+        message: getI18n().t("operator.submitFailed"),
+        shouldResetTurnstile: true,
+      };
+    }
     return {
       ok: true,
-      message: "Sorğunuz qeydə alındı, tezliklə sizinlə əlaqə saxlanılacaq.",
+      message: getI18n().t("operator.submitted"),
       shouldResetTurnstile: false,
     };
   }
@@ -90,7 +101,7 @@ export async function sendOperatorRequest(
   } catch {
     return {
       ok: false,
-      message: "Bağlantı xətası baş verdi. Zəhmət olmasa yenidən cəhd edin.",
+      message: getI18n().t("operator.networkError"),
       // No response reached the server, so the token was never spent — but
       // resetting is harmless and keeps the widget in a submittable state.
       shouldResetTurnstile: true,
@@ -107,18 +118,14 @@ export async function sendOperatorRequest(
   if (res.ok) {
     return {
       ok: true,
-      message:
-        payload.message ??
-        "Sorğunuz qeydə alındı, tezliklə sizinlə əlaqə saxlanılacaq.",
+      message: payload.message ?? getI18n().t("operator.submitted"),
       shouldResetTurnstile: false,
     };
   }
 
   return {
     ok: false,
-    message:
-      payload.detail ??
-      "Sorğunuzu qeydə ala bilmədik. Zəhmət olmasa bir az sonra yenidən cəhd edin.",
+    message: payload.detail ?? getI18n().t("operator.submitFailed"),
     shouldResetTurnstile: true,
   };
 }

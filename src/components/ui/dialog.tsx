@@ -42,7 +42,7 @@ export const DialogContent = forwardRef<
           <DialogPrimitive.Close
             aria-label={closeLabel}
             className={cn(
-              "absolute right-3.5 top-3.5 inline-flex h-8 w-8 items-center justify-center rounded-md",
+              "absolute right-3.5 top-3.5 inline-flex h-8 w-8 items-center justify-center rounded-md max-md:h-11 max-md:w-11 max-md:right-2 max-md:top-2",
               "text-text-muted transition-colors hover:bg-surface-2 hover:text-text",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
             )}

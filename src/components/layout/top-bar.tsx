@@ -11,7 +11,6 @@ export function TopBar() {
   const desktop = useIsDesktop();
   const setSidebarOpen = useUiStore((s) => s.setSidebarOpen);
   const reset = useChatStore((s) => s.reset);
-  const loading = useChatStore((s) => s.loading);
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-1.5 border-b px-3">
@@ -33,11 +32,12 @@ export function TopBar() {
       </div>
 
       <Tooltip content={t("topbar.restart")}>
+        {/* Always enabled: reset() bumps the conversation epoch, so an
+            in-flight turn or operator submit can't leak into the new chat. */}
         <Button
           variant="ghost"
           size="icon"
           onClick={reset}
-          disabled={loading}
           aria-label={t("topbar.restart")}
         >
           <RotateCcw className="h-4 w-4" aria-hidden />

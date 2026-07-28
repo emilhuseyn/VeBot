@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import type { MenuItem } from "@/lib/types";
+import { safeHref } from "@/lib/safe-href";
 import { getTopCategories } from "@/services/faq-api";
 import { BduMark, BduWordmark } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
@@ -53,9 +54,14 @@ function SidebarContent({
   const { t } = useI18n();
   const reset = useChatStore((s) => s.reset);
   const select = useChatStore((s) => s.select);
+  const chatLoading = useChatStore((s) => s.loading);
+  const operatorStep = useChatStore((s) => s.operatorStep);
   const toggleCollapsed = useUiStore((s) => s.toggleSidebarCollapsed);
   const setSidebarOpen = useUiStore((s) => s.setSidebarOpen);
   const { items, loading } = useTopCategories();
+  // select() no-ops while a turn is in flight or an operator hand-off is
+  // running — disable the rows so a tap doesn't silently do nothing.
+  const categoriesDisabled = chatLoading || operatorStep !== "idle";
 
   const closeDrawer = () => setSidebarOpen(false);
 
@@ -157,15 +163,17 @@ function SidebarContent({
           ) : (
             <ul className="flex flex-col">
               {items.map((item) => {
+                // 44px touch targets on mobile; desktop keeps its density.
                 const rowClasses =
-                  "flex w-full items-center gap-2 truncate rounded-md px-2.5 py-2 text-left text-sm text-text-muted transition-colors hover:bg-surface-2/70 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-1 focus-visible:ring-offset-surface";
+                  "flex w-full items-center gap-2 truncate rounded-md px-2.5 py-2 text-left text-sm text-text-muted transition-colors hover:bg-surface-2/70 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-1 focus-visible:ring-offset-surface max-md:min-h-11 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-text-muted";
+                const href = safeHref(item.url);
                 return (
                   <li key={item.id}>
                     {/* A link-only category (the virtual tour) opens straight
                         from the tap, exactly as it does in the chat menu. */}
-                    {item.url ? (
+                    {href ? (
                       <a
-                        href={item.url}
+                        href={href}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={closeDrawer}
@@ -180,6 +188,7 @@ function SidebarContent({
                     ) : (
                       <button
                         type="button"
+                        disabled={categoriesDisabled}
                         onClick={() => handleCategory(item)}
                         className={rowClasses}
                       >

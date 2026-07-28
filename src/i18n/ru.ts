@@ -1,9 +1,7 @@
 import type { TranslationKey } from "./az";
 
 export const ru: Record<TranslationKey, string> = {
-  "app.name": "БГУ Абитуриент",
   "app.full": "Помощник абитуриента БГУ",
-  "app.tagline": "Вопросы и ответы по приёму",
 
   "sidebar.new": "Новый чат",
   "sidebar.sections": "Разделы",
@@ -15,12 +13,6 @@ export const ru: Record<TranslationKey, string> = {
   "topbar.title": "Помощник абитуриента",
   "topbar.restart": "Начать заново",
 
-  "composer.placeholder": "Введите ваш вопрос…",
-  "composer.send": "Отправить",
-  "composer.hint": "Enter — отправить · Shift+Enter — новая строка",
-
-  "chat.you": "Вы",
-  "chat.assistant": "БГУ Абитуриент",
   "chat.loading": "Готовлю ответ…",
   "chat.scrollToBottom": "Вниз",
   "chat.error": "Произошла ошибка соединения.",
@@ -49,6 +41,12 @@ export const ru: Record<TranslationKey, string> = {
   "operator.sending": "Отправка…",
   "operator.phoneInvalid":
     "Укажите контактный номер в правильном формате (например, +994501234567).",
+  "operator.submitted":
+    "Ваш запрос принят — оператор скоро свяжется с вами.",
+  "operator.submitFailed":
+    "Не удалось записать ваш запрос. Пожалуйста, попробуйте немного позже.",
+  "operator.networkError":
+    "Произошла ошибка соединения. Пожалуйста, попробуйте ещё раз.",
 
   "nav.home": "Главное меню",
   "nav.back": "Назад",
@@ -56,8 +54,6 @@ export const ru: Record<TranslationKey, string> = {
   "nav.next": "Следующая",
   "nav.page": "{page} / {total}",
 
-  "common.cancel": "Отмена",
-  "common.save": "Сохранить",
   "common.close": "Закрыть",
   "common.settings": "Настройки",
   "common.help": "Помощь",
@@ -84,11 +80,10 @@ export const ru: Record<TranslationKey, string> = {
 
   "offline.banner":
     "Нет подключения к интернету — продолжите после восстановления связи.",
-  "toast.copied": "Скопировано в буфер обмена",
-  "toast.reset": "Чат перезапущен",
 
   "aria.chatLog": "Сообщения чата",
   "aria.sidebar": "Панель навигации",
   "aria.main": "Основной контент",
   "aria.menuOptions": "Опции меню",
+  "aria.menuNav": "Навигация по меню",
 };

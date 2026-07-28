@@ -8,7 +8,7 @@ import {
 } from "react";
 import { ArrowUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useChatStore } from "@/store/chat";
+import { useChatStore, type OperatorStep } from "@/store/chat";
 import { useResolvedTheme } from "@/components/providers/global-effects";
 import {
   loadTurnstile,
@@ -51,14 +51,38 @@ export function OperatorPanel() {
   const isSending = step === "sending";
   const active = step !== "idle";
 
-  // Clear the draft when the step changes, and focus the new control.
+  // Focus the control for the new step. The draft is cleared on a *forward*
+  // transition only: bouncing back from a failed submit (sending → message)
+  // must keep the typed question, or every 403/timeout would erase it.
+  const prevStepRef = useRef<OperatorStep>("idle");
   useEffect(() => {
-    setValue("");
-    setPhoneError(false);
-    if (step === "phone") requestAnimationFrame(() => inputRef.current?.focus());
-    if (step === "message")
+    const prev = prevStepRef.current;
+    prevStepRef.current = step;
+    if (step === "phone") {
+      setValue("");
+      setPhoneError(false);
+      requestAnimationFrame(() => inputRef.current?.focus());
+    } else if (step === "message") {
+      if (prev !== "sending") setValue("");
+      setPhoneError(false);
       requestAnimationFrame(() => textareaRef.current?.focus());
+    }
   }, [step]);
+
+  // Return focus to wherever the hand-off started (usually the operator
+  // chip) when the panel closes — otherwise focus silently drops to <body>.
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (active) {
+      const el = document.activeElement;
+      returnFocusRef.current =
+        el instanceof HTMLElement && el !== document.body ? el : null;
+    } else {
+      const el = returnFocusRef.current;
+      returnFocusRef.current = null;
+      if (el?.isConnected) el.focus();
+    }
+  }, [active]);
 
   // Auto-grow the question textarea.
   useLayoutEffect(() => {
@@ -71,6 +95,9 @@ export function OperatorPanel() {
   }, [value, step]);
 
   // Render the Turnstile widget once the hand-off starts; remove it when done.
+  // Theme and language are render-time-only options, so a mid-hand-off theme
+  // or locale switch re-renders the widget rather than leaving it stale.
+  const renderedWithRef = useRef<{ theme: string; locale: string } | null>(null);
   useEffect(() => {
     if (!active || !TURNSTILE_SITE_KEY) return;
     let cancelled = false;
@@ -78,7 +105,23 @@ export function OperatorPanel() {
     void loadTurnstile()
       .then((turnstile) => {
         const host = widgetHostRef.current;
-        if (cancelled || !host || widgetIdRef.current) return;
+        if (cancelled || !host) return;
+        const rendered = renderedWithRef.current;
+        if (
+          widgetIdRef.current &&
+          rendered &&
+          (rendered.theme !== theme || rendered.locale !== locale)
+        ) {
+          try {
+            turnstile.remove(widgetIdRef.current);
+          } catch {
+            /* already gone */
+          }
+          widgetIdRef.current = null;
+          tokenRef.current = "";
+        }
+        if (widgetIdRef.current) return;
+        renderedWithRef.current = { theme, locale };
         widgetIdRef.current = turnstile.render(host, {
           sitekey: TURNSTILE_SITE_KEY,
           theme,

@@ -18,6 +18,7 @@ import {
   shortenMenuLabels,
 } from "@/lib/menu-labels";
 import { TURNSTILE_CONFIGURED } from "@/lib/turnstile";
+import { safeHref } from "@/lib/safe-href";
 import { useChatStore } from "@/store/chat";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
@@ -96,14 +97,23 @@ export function MenuBubble({
   const matches = useMemo(
     () =>
       folded
-        ? displayItems.filter((item) => foldForSearch(item.label).includes(folded))
+        ? displayItems.filter((item, i) => {
+            // Match against the display label AND the original one, so a
+            // query containing the stripped shared tail still finds its row.
+            if (foldForSearch(item.label).includes(folded)) return true;
+            const original = menu.items[i];
+            return original
+              ? foldForSearch(original.label).includes(folded)
+              : false;
+          })
         : displayItems,
-    [displayItems, folded],
+    [displayItems, folded, menu.items],
   );
-  const truncated = searchable && !expanded && !folded && matches.length > INITIAL_ROWS;
+  // Filtered results keep the show-all gate too: a one-letter query must not
+  // dump hundreds of unpaginated rows.
+  const truncated = searchable && !expanded && matches.length > INITIAL_ROWS;
   const visibleItems = truncated ? matches.slice(0, INITIAL_ROWS) : matches;
-  const canCollapse =
-    searchable && expanded && !folded && matches.length > INITIAL_ROWS;
+  const canCollapse = searchable && expanded && matches.length > INITIAL_ROWS;
 
   const showHome = menu.level !== "top";
   const showBack = navOnly || menu.has_back;
@@ -150,7 +160,12 @@ export function MenuBubble({
             type="search"
             value={query}
             disabled={!interactive}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              // A new query starts folded again — "show all" applied to the
+              // previous result set, not this one.
+              setExpanded(false);
+            }}
             placeholder={t("menu.searchPlaceholder")}
             aria-label={t("menu.searchPlaceholder")}
             className="min-h-[44px] flex-1 bg-transparent text-sm text-text placeholder:text-text-muted focus:outline-none disabled:opacity-60"
@@ -167,6 +182,7 @@ export function MenuBubble({
 
       {!navOnly && (
         <ul
+          aria-label={t("aria.menuOptions")}
           className={cn(
             "gap-2",
             tileGrid
@@ -203,7 +219,11 @@ export function MenuBubble({
             // A row that leads to nothing but a link is an anchor, so the tap
             // opens it directly — no request, and no popup blocker (which is
             // what would kill a window.open() issued after an async reply).
-            const isLink = Boolean(item.url) && interactive;
+            // Scheme-checked, and independent of `interactive`: a link in an
+            // older menu costs no round-trip, so it stays clickable.
+            const linkHref = safeHref(item.url);
+            const isLink = Boolean(linkHref);
+            const rowInteractive = interactive || isLink;
 
             const rowClasses = cn(
                     "group relative flex h-full w-full text-left",
@@ -224,7 +244,7 @@ export function MenuBubble({
                       : compactRows
                         ? "min-h-[44px] items-center gap-2 px-3 py-1.5"
                         : "min-h-[44px] items-center gap-2.5 px-3.5 py-2",
-                    interactive
+                    rowInteractive
                       ? [
                           "hover:border-primary/40 hover:shadow-md",
                           "motion-safe:hover:-translate-y-0.5",
@@ -244,7 +264,7 @@ export function MenuBubble({
                       "bg-primary/10 text-primary ring-1 ring-inset ring-primary/10",
                       "transition-colors duration-200",
                       "h-7 w-7 @min-[65rem]:h-8 @min-[65rem]:w-8",
-                      interactive && "group-hover:bg-primary/20",
+                      rowInteractive && "group-hover:bg-primary/20",
                     )}
                   >
                     <Icon
@@ -295,9 +315,9 @@ export function MenuBubble({
 
             return (
               <li key={item.id}>
-                {isLink ? (
+                {linkHref ? (
                   <a
-                    href={item.url}
+                    href={linkHref}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={rowClasses}
@@ -350,7 +370,7 @@ export function MenuBubble({
         <div
           className="flex flex-wrap items-center gap-1.5"
           role="group"
-          aria-label={t("aria.menuOptions")}
+          aria-label={t("aria.menuNav")}
         >
           {showBack && (
             <NavChip

@@ -6,9 +6,7 @@
  */
 export const az = {
   // App / brand
-  "app.name": "BDU Abituriyent",
   "app.full": "BDU Abituriyent Köməkçisi",
-  "app.tagline": "Qəbul üzrə sual-cavab",
 
   // Sidebar
   "sidebar.new": "Yeni söhbət",
@@ -22,14 +20,7 @@ export const az = {
   "topbar.title": "Abituriyent Köməkçisi",
   "topbar.restart": "Söhbəti yenilə",
 
-  // Composer
-  "composer.placeholder": "Sualınızı yazın…",
-  "composer.send": "Göndər",
-  "composer.hint": "Enter — göndər · Shift+Enter — yeni sətir",
-
   // Chat
-  "chat.you": "Siz",
-  "chat.assistant": "BDU Abituriyent",
   "chat.loading": "Cavab hazırlanır…",
   "chat.scrollToBottom": "Aşağı keç",
   "chat.error": "Bağlantı xətası baş verdi.",
@@ -60,6 +51,14 @@ export const az = {
   "operator.sending": "Göndərilir…",
   "operator.phoneInvalid":
     "Zəhmət olmasa əlaqə nömrənizi düzgün formatda yazın (məs. +994501234567).",
+  // Fallbacks for locally-detected outcomes; the backend's own copy (`detail`)
+  // is shown verbatim whenever it arrives.
+  "operator.submitted":
+    "Sorğunuz qeydə alındı, tezliklə sizinlə əlaqə saxlanılacaq.",
+  "operator.submitFailed":
+    "Sorğunuzu qeydə ala bilmədik. Zəhmət olmasa bir az sonra yenidən cəhd edin.",
+  "operator.networkError":
+    "Bağlantı xətası baş verdi. Zəhmət olmasa yenidən cəhd edin.",
 
   // Menu navigation
   "nav.home": "Əsas menyu",
@@ -69,8 +68,6 @@ export const az = {
   "nav.page": "{page} / {total}",
 
   // Common
-  "common.cancel": "Ləğv et",
-  "common.save": "Yadda saxla",
   "common.close": "Bağla",
   "common.settings": "Tənzimləmələr",
   "common.help": "Kömək",
@@ -99,14 +96,13 @@ export const az = {
 
   // System states
   "offline.banner": "İnternet bağlantısı yoxdur — bağlantı bərpa olunanda davam edin.",
-  "toast.copied": "Mətn kopyalandı",
-  "toast.reset": "Söhbət yeniləndi",
 
   // ARIA
   "aria.chatLog": "Söhbət mesajları",
   "aria.sidebar": "Naviqasiya paneli",
   "aria.main": "Əsas məzmun",
   "aria.menuOptions": "Menyu seçimləri",
+  "aria.menuNav": "Menyu naviqasiyası",
 } as const;
 
 export type TranslationKey = keyof typeof az;

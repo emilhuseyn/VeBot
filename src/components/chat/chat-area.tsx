@@ -48,6 +48,8 @@ export function ChatArea() {
 
   const entryCount = entries.length;
   const hasUserTurn = entries.some((e) => e.role === "user");
+  const lastEntryRole = entries[entries.length - 1]?.role;
+  const prevEntryCountRef = useRef(0);
 
   // After a tap the view sticks to the bottom, so the answer and its
   // Back / Home controls are visible. The first greeting stays at the top so
@@ -56,6 +58,8 @@ export function ChatArea() {
   useLayoutEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
+    const prevCount = prevEntryCountRef.current;
+    prevEntryCountRef.current = entryCount;
 
     if (!loading && !hasUserTurn) {
       el.scrollTop = 0;
@@ -64,13 +68,28 @@ export function ChatArea() {
       return;
     }
 
-    el.scrollTop = el.scrollHeight;
-    pinnedRef.current = true;
-    setPinned(true);
-  }, [entryCount, loading, hasUserTurn]);
+    const grew = entryCount > prevCount;
 
-  // Keep the view pinned to the bottom as late-loading content (e.g. answer
-  // images) grows the transcript, so it never settles just above the end.
+    // The visitor just acted — snap to their message and follow the reply.
+    if (grew && lastEntryRole === "user") {
+      pinnedRef.current = true;
+      setPinned(true);
+      el.scrollTop = el.scrollHeight;
+      return;
+    }
+
+    // New bot content only follows while the view is already at the bottom:
+    // someone who scrolled up to read history is never yanked back down (the
+    // scroll-to-bottom button is their way back).
+    if (grew && pinnedRef.current) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [entryCount, loading, hasUserTurn, lastEntryRole]);
+
+  // Keep the view pinned to the bottom as late content growth moves the end:
+  // the transcript growing (answer images loading in), or the bottom bar
+  // growing (Turnstile challenge appearing, the operator textarea expanding),
+  // which shrinks this scroll container from below.
   useEffect(() => {
     const el = scrollRef.current;
     const content = el?.firstElementChild;
@@ -79,6 +98,7 @@ export function ChatArea() {
       if (pinnedRef.current) el.scrollTop = el.scrollHeight;
     });
     ro.observe(content);
+    ro.observe(el);
     return () => ro.disconnect();
   }, [hydrated]);
 

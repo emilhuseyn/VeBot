@@ -15,6 +15,19 @@ import { persistence, STORAGE_KEYS } from "@/services/persistence";
 /** The last input sent, kept out of persisted state so "retry" can replay it. */
 let lastInput: MessageInput | null = null;
 
+/**
+ * Conversation epoch. `reset()` bumps it, and every async continuation
+ * (a turn's response handler, an auto-advance hop, an operator submit)
+ * re-checks it after each await: a stale continuation belongs to the
+ * conversation that was just wiped, so it must not append entries, flip
+ * `loading`, or write `lastInput` into the fresh one.
+ */
+let epoch = 0;
+
+/** Stalled requests (Render cold start, dead mobile link) must not pin
+ *  `loading` forever — the catch below turns a timeout into the retry strip. */
+const REQUEST_TIMEOUT_MS = 20_000;
+
 function toBotEntry(message: WebMessage): ChatEntry {
   const base = { id: uid(), role: "bot" as const, createdAt: Date.now() };
   if (message.type === "menu") {
@@ -128,6 +141,7 @@ export const useChatStore = create<ChatState>()(
         // Only the outermost call guards on `loading`; auto-advance hops below
         // deliberately continue the same in-flight turn.
         if (depth === 0 && get().loading) return;
+        const gen = epoch;
         lastInput = input;
         set((s) => ({
           entries: pendingUser ? [...s.entries, pendingUser] : s.entries,
@@ -135,7 +149,14 @@ export const useChatStore = create<ChatState>()(
           error: false,
         }));
         try {
-          const res = await sendMessage(get().sessionId, input);
+          const res = await sendMessage(
+            get().sessionId,
+            input,
+            AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+          );
+          // The conversation was reset while this request was in flight —
+          // its response belongs to a transcript that no longer exists.
+          if (gen !== epoch) return;
 
           const skipTo = autoAdvanceTarget(res, depth);
           if (skipTo) {
@@ -145,9 +166,22 @@ export const useChatStore = create<ChatState>()(
             return;
           }
 
-          const botEntries = res.messages.map(toBotEntry);
+          // A sub-level menu arriving alongside a text answer is the backend
+          // re-showing the question list after answering — flag it so the
+          // transcript collapses it to just the nav controls.
+          const hasAnswer = res.messages.some((m) => m.type === "text");
+          const botEntries = res.messages.map((m) => {
+            const entry = toBotEntry(m);
+            return entry.role === "bot" &&
+              entry.kind === "menu" &&
+              entry.menu.level === "sub" &&
+              hasAnswer
+              ? { ...entry, navOnly: true }
+              : entry;
+          });
           set((s) => ({ entries: [...s.entries, ...botEntries], loading: false }));
         } catch {
+          if (gen !== epoch) return;
           set({ loading: false, error: true });
         }
       }
@@ -165,25 +199,38 @@ export const useChatStore = create<ChatState>()(
         },
 
         select: (item) => {
-          if (get().loading) return;
+          // No FAQ turns mid-hand-off: the operator dialogue would interleave
+          // with unrelated menus. (The chips are also disabled visually.)
+          if (get().loading || get().operatorStep !== "idle") return;
           void run({ selection_id: item.id }, userEntry(item.label));
         },
 
         nav: (navId) => {
-          if (get().loading) return;
+          if (get().loading || get().operatorStep !== "idle") return;
           void run({ selection_id: navId });
         },
 
         reset: () => {
           const id = get().sessionId;
           void resetSession(id);
+          // Invalidate every in-flight continuation (turns, auto-advance
+          // hops, operator submits) before wiping the transcript.
+          epoch += 1;
           lastInput = null;
-          set({ entries: [], loading: false, error: false });
+          set({
+            entries: [],
+            loading: false,
+            error: false,
+            // A restart also abandons a half-done operator hand-off — the
+            // panel unmounts and tears its Turnstile widget down itself.
+            operatorStep: "idle",
+            operatorPhone: "",
+          });
           void run({ text: "" });
         },
 
         retry: () => {
-          if (!lastInput || get().loading) return;
+          if (!lastInput || get().loading || get().operatorStep !== "idle") return;
           void run(lastInput);
         },
 
@@ -218,6 +265,7 @@ export const useChatStore = create<ChatState>()(
           if (!trimmed || get().operatorStep !== "message") {
             return { ok: false, shouldResetTurnstile: false };
           }
+          const gen = epoch;
           set((s) => ({
             entries: [...s.entries, userEntry(trimmed)],
             operatorStep: "sending",
@@ -237,6 +285,12 @@ export const useChatStore = create<ChatState>()(
             turnstileToken: token,
             sessionId: get().sessionId,
           });
+
+          // The chat was restarted while the POST was in flight: don't bleed
+          // the stale result bubble into the fresh conversation.
+          if (gen !== epoch || get().operatorStep !== "sending") {
+            return { ok: false, shouldResetTurnstile: false };
+          }
 
           set((s) => ({
             entries: [...s.entries, localBotEntry(result.message)],

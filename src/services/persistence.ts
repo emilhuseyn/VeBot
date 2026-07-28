@@ -20,6 +20,14 @@ export const STORAGE_KEYS = {
   ui: "bdu-faq:ui",
 } as const;
 
+// One-time cleanup: purge the pre-v2 key so returning visitors don't carry
+// a dead full-transcript blob in localStorage forever.
+try {
+  window.localStorage.removeItem("bdu-faq:chat");
+} catch {
+  // Privacy mode / storage disabled — nothing to clean.
+}
+
 function createLocalStoragePersistence(): PersistenceAdapter {
   return {
     getItem(name) {

@@ -1,7 +1,9 @@
 import type { ChatImage, WebMessage } from "@/lib/types";
 
 const IMG_EXT = /\.(png|jpe?g|gif|webp|svg|avif|bmp)(\?|#|$)/i;
-const MD_IMAGE = /!\[([^\]]*)\]\(\s*([^)\s]+)(?:\s+"[^"]*")?\s*\)/g;
+// The URL group is lazy-up-to-")" rather than "no whitespace": backend image
+// filenames contain spaces ("esas korpus.png"), and those must still parse.
+const MD_IMAGE = /!\[([^\]]*)\]\(\s*([^)]+?)(?:\s+"[^"]*")?\s*\)/g;
 const BARE_URL = /(?<!\]\()\bhttps?:\/\/[^\s)]+/g;
 
 function pushImage(
@@ -86,6 +88,10 @@ export function stripImageSyntax(text: string): string {
   return text
     .replace(MD_IMAGE, "")
     .replace(BARE_URL, (u) => (IMG_EXT.test(u) ? "" : u))
+    // Tidy what the removal leaves behind: "()" husks from "(https://…png)"
+    // and doubled inline spaces where a mid-sentence reference sat.
+    .replace(/\(\s*\)/g, "")
+    .replace(/[ \t]{2,}/g, " ")
     .replace(/[ \t]+$/gm, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();

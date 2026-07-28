@@ -41,10 +41,16 @@ export function shortenMenuLabels(items: MenuItem[]): ShortenedMenu {
   const suffix = commonSuffixWords(items.map((i) => i.label));
   if (!suffix) return { items, strippedSuffix: "" };
 
+  // Cut by word count, not character count: the suffix was computed from
+  // whitespace-normalized words, so a label whose literal tail contains e.g.
+  // a double space would be cut one character short (garbled) otherwise.
+  const tailWords = suffix.split(" ").length;
+  const tailRe = new RegExp(`(?:\\s+\\S+){${tailWords}}\\s*$`);
+
   const shortened = items.map((item) => {
     const trimmed = item.label
       .trim()
-      .slice(0, item.label.trim().length - suffix.length)
+      .replace(tailRe, "")
       .replace(/[\s,;:–-]+$/u, "")
       .trim();
     // Defensive: never show an empty option.

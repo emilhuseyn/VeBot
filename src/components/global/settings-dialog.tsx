@@ -34,7 +34,7 @@ function SegmentButton({
       aria-label={ariaLabel}
       onClick={onClick}
       className={cn(
-        "inline-flex h-8 items-center justify-center gap-1.5 rounded-[6px] px-3 text-[13px] font-medium",
+        "inline-flex h-8 items-center justify-center gap-1.5 rounded-[6px] px-3 text-[13px] font-medium max-md:h-11",
         "transition-colors duration-150",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
         selected

@@ -109,5 +109,14 @@ export type ChatEntry =
       role: "bot";
       kind: "menu";
       menu: Menu;
+      /**
+       * Set when this menu arrived in the same response as a text answer —
+       * i.e. it is the backend re-showing the question list right after
+       * answering. Rendered collapsed to just the Back / Home controls.
+       * Decided at entry creation, not at render time: inferring it from the
+       * neighbouring transcript entry misfires when a locally-generated bot
+       * bubble (operator prompt, cancel note) sits in between.
+       */
+      navOnly?: boolean;
       createdAt: number;
     };

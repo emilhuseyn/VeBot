@@ -10,12 +10,14 @@ import { ChatImageGrid } from "@/components/chat/chat-image";
 import { useChatStore } from "@/store/chat";
 import { useCopyToClipboard } from "@/lib/hooks";
 import { linkify } from "@/lib/linkify";
+import { safeHref } from "@/lib/safe-href";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 
 export function Transcript({ entries }: { entries: ChatEntry[] }) {
   const { t } = useI18n();
   const loading = useChatStore((s) => s.loading);
+  const operatorStep = useChatStore((s) => s.operatorStep);
   const select = useChatStore((s) => s.select);
   const nav = useChatStore((s) => s.nav);
 
@@ -51,15 +53,6 @@ export function Transcript({ entries }: { entries: ChatEntry[] }) {
           );
         }
 
-        // A question list re-shown right AFTER an answer (its previous entry is
-        // the answer text) is redundant — collapse it to just the Back / Home
-        // controls instead of repeating every question.
-        const navOnly =
-          entry.kind === "menu" &&
-          entry.menu.level === "sub" &&
-          prev?.role === "bot" &&
-          prev.kind === "text";
-
         return (
           <BotRow key={entry.id} entryId={entry.id} showAvatar={firstOfBotGroup}>
             {entry.kind === "text" ? (
@@ -71,8 +64,15 @@ export function Transcript({ entries }: { entries: ChatEntry[] }) {
             ) : (
               <MenuBubble
                 menu={entry.menu}
-                interactive={entry.id === lastMenuId && !loading}
-                navOnly={navOnly}
+                // Frozen while an operator hand-off is in progress, so the
+                // phone/question dialogue can't interleave with FAQ turns.
+                interactive={
+                  entry.id === lastMenuId && !loading && operatorStep === "idle"
+                }
+                // The "asked and answered" re-show is flagged when the entry
+                // is created (see run() in the store): it collapses to just
+                // the Back / Home controls instead of repeating the list.
+                navOnly={entry.navOnly === true}
                 onSelect={select}
                 onNav={nav}
               />
@@ -121,9 +121,11 @@ function BotText({
 }) {
   const { t } = useI18n();
   const { copied, copy } = useCopyToClipboard();
+  // Scheme-checked: a backend-supplied URL never reaches an href unvetted.
+  const href = safeHref(url);
   // When the answer is nothing but a link, the address itself is noise — the
   // action is what matters, so offer a button and drop the bare URL.
-  const isLinkOnly = Boolean(url) && text.trim() === url?.trim();
+  const isLinkOnly = Boolean(href) && text.trim() === href;
   const hasText = !isLinkOnly && text.trim().length > 0;
   return (
     <div className="group">
@@ -140,9 +142,9 @@ function BotText({
         </div>
       )}
       {images && images.length > 0 && <ChatImageGrid images={images} />}
-      {url && (
+      {href && (
         <a
-          href={url}
+          href={href}
           target="_blank"
           rel="noopener noreferrer"
           className={cn(

@@ -1,9 +1,7 @@
 import type { TranslationKey } from "./az";
 
 export const en: Record<TranslationKey, string> = {
-  "app.name": "BSU Applicant",
   "app.full": "BSU Applicant Assistant",
-  "app.tagline": "Admissions Q&A",
 
   "sidebar.new": "New chat",
   "sidebar.sections": "Sections",
@@ -15,12 +13,6 @@ export const en: Record<TranslationKey, string> = {
   "topbar.title": "Applicant Assistant",
   "topbar.restart": "Restart chat",
 
-  "composer.placeholder": "Type your question…",
-  "composer.send": "Send",
-  "composer.hint": "Enter to send · Shift+Enter for a new line",
-
-  "chat.you": "You",
-  "chat.assistant": "BSU Applicant",
   "chat.loading": "Preparing a reply…",
   "chat.scrollToBottom": "Scroll to bottom",
   "chat.error": "A connection error occurred.",
@@ -49,6 +41,11 @@ export const en: Record<TranslationKey, string> = {
   "operator.sending": "Sending…",
   "operator.phoneInvalid":
     "Please enter your contact number in a valid format (e.g. +994501234567).",
+  "operator.submitted":
+    "Your request has been recorded — an operator will contact you soon.",
+  "operator.submitFailed":
+    "We couldn't record your request. Please try again in a little while.",
+  "operator.networkError": "A connection error occurred. Please try again.",
 
   "nav.home": "Main menu",
   "nav.back": "Back",
@@ -56,8 +53,6 @@ export const en: Record<TranslationKey, string> = {
   "nav.next": "Next",
   "nav.page": "{page} / {total}",
 
-  "common.cancel": "Cancel",
-  "common.save": "Save",
   "common.close": "Close",
   "common.settings": "Settings",
   "common.help": "Help",
@@ -83,11 +78,10 @@ export const en: Record<TranslationKey, string> = {
   "user.menu": "User menu",
 
   "offline.banner": "No internet connection — continue once you're back online.",
-  "toast.copied": "Copied to clipboard",
-  "toast.reset": "Chat restarted",
 
   "aria.chatLog": "Chat messages",
   "aria.sidebar": "Navigation sidebar",
   "aria.main": "Main content",
   "aria.menuOptions": "Menu options",
+  "aria.menuNav": "Menu navigation",
 };

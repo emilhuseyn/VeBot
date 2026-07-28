@@ -20,12 +20,13 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   danger: "text-error hover:bg-error/10",
 };
 
+// Mobile sizes bottom out at h-11 (44px), the minimum comfortable touch target.
 const SIZE_CLASSES: Record<ButtonSize, string> = {
-  sm: "h-8 px-3 text-[0.8125rem] max-md:h-10",
+  sm: "h-8 px-3 text-[0.8125rem] max-md:h-11",
   md: "h-9 px-3.5 text-sm max-md:h-11",
   lg: "h-10 px-4 text-sm max-md:h-11",
   icon: "h-9 w-9 max-md:h-11 max-md:w-11",
-  iconSm: "h-8 w-8 max-md:h-10 max-md:w-10",
+  iconSm: "h-8 w-8 max-md:h-11 max-md:w-11",
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

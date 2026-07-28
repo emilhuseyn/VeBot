@@ -22,28 +22,36 @@ is required to develop or demo.
 
 ## Connecting the real backend
 
-Set one environment variable — nothing else changes:
-
 ```bash
 # .env
 VITE_API_BASE=https://<your-abituriback-service>
+VITE_TURNSTILE_SITE_KEY=<cloudflare-turnstile-site-key>   # optional, see below
 ```
 
 When `VITE_API_BASE` is set, all calls hit the real backend
-(`POST /web/message`, `POST /web/reset`, `GET /web/menu`); when it is empty, the
-in-repo mock engine ([`src/services/faq-mock.ts`](src/services/faq-mock.ts)) answers
-from sample data. The single integration point is
+(`POST /web/message`, `POST /web/reset`, `GET /web/menu`,
+`POST /web/operator-request`); when it is empty, the in-repo mock engine
+([`src/services/faq-mock.ts`](src/services/faq-mock.ts)) answers from sample data.
+The single integration point is
 [`src/services/faq-api.ts`](src/services/faq-api.ts). Ask the backend owner to add this
 frontend's origin to `WEB_CORS_ORIGINS`.
+
+`VITE_TURNSTILE_SITE_KEY` is the **public** Cloudflare Turnstile site key used by the
+operator hand-off form. When it is unset, the "Operatorla əlaqə" action is hidden
+entirely (the backend fails closed without a token, so offering the form would be
+pointless). The matching **secret** key lives on the backend host (Render), never here.
 
 ## How it works
 
 - **Conversational API** (per the backend's recommended integration): the frontend
   keeps a `session_id` in `localStorage` and renders whatever the engine returns —
   `text` bubbles and `menu` bubbles (tappable option rows + Back / Home / Prev / Next).
-- Tapping an option sends its `id` as `selection_id`; typing sends free `text`.
+- Tapping an option sends its `id` as `selection_id`. There is no free-text input —
+  the widget is strictly menu-driven.
 - Only the **latest** menu stays interactive; earlier menus become a read-only record.
 - The sidebar lists top-level categories (from `GET /web/menu`) as one-tap shortcuts.
+- **Operator hand-off**: after an answer, "Operatorla əlaqə" walks the visitor through
+  phone → question and posts both to `POST /web/operator-request`, gated by Turnstile.
 
 ## Structure
 
@@ -51,8 +59,8 @@ frontend's origin to `WEB_CORS_ORIGINS`.
 src/
   components/
     layout/     Sidebar (category shortcuts), TopBar (restart), OfflineBanner
-    chat/       ChatArea, Transcript, MenuBubble, Composer, TypingIndicator
-    global/     SettingsDialog (theme / language / font size)
+    chat/       ChatArea, Transcript, MenuBubble, OperatorPanel, TypingIndicator
+    global/     SettingsDialog (theme / font size)
     ui/         Radix-based primitives styled with design tokens
   store/        Zustand: chat (session + transcript), settings, ui
   services/     faq-api.ts (mock ⇄ real swap), faq-mock.ts, faq-data.ts, persistence.ts
@@ -68,5 +76,3 @@ src/
 - No authentication on `/web/*`; don't put secrets in the frontend.
 - `WEB_PAGE_SIZE` defaults to 0 on the backend (all items on one page), so pagination
   controls exist in the UI but may never trigger unless the backend enables paging.
-- The BDU emblem is a placeholder — see `OFFICIAL_BDU_EMBLEM_SLOT` in
-  [`src/components/ui/logo.tsx`](src/components/ui/logo.tsx).
