@@ -33,6 +33,7 @@ export const ru: Record<TranslationKey, string> = {
   "menu.searchPlaceholder": "Поиск по списку…",
   "menu.noMatches": "Совпадений не найдено.",
   "menu.showAll": "Показать ещё {count}",
+  "menu.showLess": "Свернуть список",
 
   "operator.contact": "Связаться с оператором",
   "operator.askPhone":

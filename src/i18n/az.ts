@@ -43,6 +43,7 @@ export const az = {
   "menu.searchPlaceholder": "Siyahıda axtarın…",
   "menu.noMatches": "Uyğun nəticə tapılmadı.",
   "menu.showAll": "Daha {count} variant göstər",
+  "menu.showLess": "Siyahını yığcamlaşdır",
 
   // Operator hand-off
   "operator.contact": "Operatorla əlaqə",

@@ -4,6 +4,7 @@ import {
   ArrowRight,
   ChevronDown,
   ChevronRight,
+  ChevronUp,
   Headset,
   Home,
   Search,
@@ -24,6 +25,9 @@ import { useI18n } from "@/i18n";
 const SEARCH_THRESHOLD = 12;
 /** How many options a searchable menu opens with. */
 const INITIAL_ROWS = 16;
+
+const EXPAND_TOGGLE_CLASSES =
+  "inline-flex items-center justify-center gap-2 rounded-full border bg-bg px-4 py-2.5 text-sm font-medium text-text-muted transition-colors hover:bg-surface-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-60";
 
 /**
  * Renders a menu message: prose body, the tappable options, and the
@@ -88,6 +92,8 @@ export function MenuBubble({
   );
   const truncated = searchable && !expanded && !folded && matches.length > INITIAL_ROWS;
   const visibleItems = truncated ? matches.slice(0, INITIAL_ROWS) : matches;
+  const canCollapse =
+    searchable && expanded && !folded && matches.length > INITIAL_ROWS;
 
   const showHome = menu.level !== "top";
   const showBack = navOnly || menu.has_back;
@@ -255,10 +261,24 @@ export function MenuBubble({
           type="button"
           disabled={!interactive}
           onClick={() => setExpanded(true)}
-          className="inline-flex items-center justify-center gap-2 rounded-full border bg-bg px-4 py-2.5 text-sm font-medium text-text-muted transition-colors hover:bg-surface-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-60"
+          className={EXPAND_TOGGLE_CLASSES}
         >
           <ChevronDown className="h-4 w-4" aria-hidden />
           {t("menu.showAll", { count: matches.length - INITIAL_ROWS })}
+        </button>
+      )}
+
+      {/* After expanding a long list, offer the way back — otherwise the only
+          exit from 232 rows is a long scroll. */}
+      {!navOnly && canCollapse && (
+        <button
+          type="button"
+          disabled={!interactive}
+          onClick={() => setExpanded(false)}
+          className={EXPAND_TOGGLE_CLASSES}
+        >
+          <ChevronUp className="h-4 w-4" aria-hidden />
+          {t("menu.showLess")}
         </button>
       )}
 

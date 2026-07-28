@@ -33,6 +33,7 @@ export const en: Record<TranslationKey, string> = {
   "menu.searchPlaceholder": "Search the list…",
   "menu.noMatches": "No matching options.",
   "menu.showAll": "Show {count} more",
+  "menu.showLess": "Show fewer",
 
   "operator.contact": "Contact an operator",
   "operator.askPhone":

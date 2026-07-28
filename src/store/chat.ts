@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { ChatEntry, WebMessage } from "@/lib/types";
+import type { ChatEntry, WebMessage, WebMessageResponse } from "@/lib/types";
 import type { MenuItem } from "@/lib/types";
 import { uid } from "@/lib/utils";
 import { extractImages, stripImageSyntax } from "@/lib/images";
@@ -52,6 +52,35 @@ function localBotEntry(text: string): ChatEntry {
  */
 export type OperatorStep = "idle" | "phone" | "message" | "sending";
 
+/** Safety net: a backend that always answered with a single option would
+ *  otherwise chain for ever. Real trees are at most category → sub → question. */
+const MAX_AUTO_HOPS = 4;
+
+/**
+ * The id to jump straight to when a response is nothing but a menu offering a
+ * single option — tapping it is the only thing the visitor could do.
+ *
+ * Guarded on the response containing **no text message**: after an answer the
+ * backend re-shows that question list, which for a one-question category is
+ * also a single-option menu. Auto-advancing on that would answer the same
+ * question for ever, so a response that carries an answer is never followed.
+ */
+function autoAdvanceTarget(res: WebMessageResponse, depth: number): string | null {
+  if (depth >= MAX_AUTO_HOPS) return null;
+  if (res.messages.some((m) => m.type === "text")) return null;
+
+  const menus = res.messages.filter((m) => m.type === "menu");
+  if (menus.length !== 1) return null;
+  const only = menus[0];
+  if (!only || only.type !== "menu") return null;
+  // Never collapse the top-level category menu.
+  if (only.menu.level === "top") return null;
+  if (only.menu.items.length !== 1) return null;
+  // Paginated menus can show one row while more exist behind Next.
+  if (only.menu.has_next || only.menu.has_prev) return null;
+  return only.menu.items[0]?.id ?? null;
+}
+
 interface ChatState {
   sessionId: string;
   entries: ChatEntry[];
@@ -89,8 +118,11 @@ export const useChatStore = create<ChatState>()(
       async function run(
         input: MessageInput,
         pendingUser?: ChatEntry,
+        depth = 0,
       ): Promise<void> {
-        if (get().loading) return;
+        // Only the outermost call guards on `loading`; auto-advance hops below
+        // deliberately continue the same in-flight turn.
+        if (depth === 0 && get().loading) return;
         lastInput = input;
         set((s) => ({
           entries: pendingUser ? [...s.entries, pendingUser] : s.entries,
@@ -99,6 +131,15 @@ export const useChatStore = create<ChatState>()(
         }));
         try {
           const res = await sendMessage(get().sessionId, input);
+
+          const skipTo = autoAdvanceTarget(res, depth);
+          if (skipTo) {
+            // A menu offering a single option is a dead click: don't render it,
+            // just take it. The intermediate bubble never enters the transcript.
+            await run({ selection_id: skipTo }, undefined, depth + 1);
+            return;
+          }
+
           const botEntries = res.messages.map(toBotEntry);
           set((s) => ({ entries: [...s.entries, ...botEntries], loading: false }));
         } catch {
