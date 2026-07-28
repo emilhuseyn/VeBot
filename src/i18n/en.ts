@@ -30,6 +30,10 @@ export const en: Record<TranslationKey, string> = {
   "chat.imageOpen": "Open image full size",
   "chat.imageFailed": "Image failed to load",
 
+  "menu.searchPlaceholder": "Search the list…",
+  "menu.noMatches": "No matching options.",
+  "menu.showAll": "Show {count} more",
+
   "operator.contact": "Contact an operator",
   "operator.askPhone":
     "To reach an operator, please enter your contact number (e.g. +994501234567).",

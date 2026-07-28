@@ -1,11 +1,29 @@
-import type { ReactNode } from "react";
-import { ArrowLeft, ArrowRight, ChevronRight, Headset, Home } from "lucide-react";
+import { useMemo, useState, type ReactNode } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ChevronDown,
+  ChevronRight,
+  Headset,
+  Home,
+  Search,
+} from "lucide-react";
 import { NAV, type Menu, type MenuItem } from "@/lib/types";
 import { iconForCategory } from "@/lib/category-icons";
+import {
+  foldForSearch,
+  medianLabelLength,
+  shortenMenuLabels,
+} from "@/lib/menu-labels";
 import { TURNSTILE_CONFIGURED } from "@/lib/turnstile";
 import { useChatStore } from "@/store/chat";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
+
+/** Above this many options a menu gets a filter box. */
+const SEARCH_THRESHOLD = 12;
+/** How many options a searchable menu opens with. */
+const INITIAL_ROWS = 16;
 
 /**
  * Renders a menu message: prose body, the tappable options, and the
@@ -32,27 +50,44 @@ export function MenuBubble({
   const { t } = useI18n();
   const startOperator = useChatStore((s) => s.startOperator);
   const operatorStep = useChatStore((s) => s.operatorStep);
+  const [query, setQuery] = useState("");
+  const [expanded, setExpanded] = useState(false);
+
+  // Template-built menus repeat the same tail on every option (the heading
+  // already says it), so it is stripped for display — 61 chars down to ~26.
+  const { items: displayItems } = useMemo(
+    () => shortenMenuLabels(menu.items),
+    [menu.items],
+  );
 
   // The top-level category menu renders as a bento tile grid: 15 short labels
   // as full-width rows ran ~790px, and even two columns of rows ~394px. Square
   // tiles only get *shorter* than rows by cutting row count, which needs ~8
   // columns — more than the 768px reading column can fit legibly. So at wide
   // widths the grid breaks out of that column (see the width/margin calc on the
-  // <ul>), landing 15 tiles in exactly 2 rows.
+  // <ul>), landing the tiles in two rows.
   const tileGrid = menu.level === "top" && menu.items.length >= 6;
 
-  // With 8 columns, 15 items leave one ragged hole. Letting the first (most
-  // important) category span two tracks fills the grid exactly — but only when
-  // the arithmetic actually works out, so a future 16th category can't produce
-  // a worse layout than no hero at all.
-  const heroSpan = tileGrid && menu.items.length % 8 === 7;
-
-  // Menus that are not the category grid but still have short labels (e.g. a
-  // sub-category list) keep the compact two-column rows.
+  // Median, not max: one long outlier shouldn't force every other option back
+  // into a full-width row.
   const compactRows =
     !tileGrid &&
-    menu.items.length >= 4 &&
-    menu.items.every((item) => item.label.length <= 34);
+    displayItems.length >= 4 &&
+    medianLabelLength(displayItems) <= 34;
+
+  // Long lists (232 options under "İxtisaslaşma") are unusable as a wall of
+  // rows, so they get a filter box and only open a first page of results.
+  const searchable = !tileGrid && displayItems.length > SEARCH_THRESHOLD;
+  const folded = foldForSearch(query.trim());
+  const matches = useMemo(
+    () =>
+      folded
+        ? displayItems.filter((item) => foldForSearch(item.label).includes(folded))
+        : displayItems,
+    [displayItems, folded],
+  );
+  const truncated = searchable && !expanded && !folded && matches.length > INITIAL_ROWS;
+  const visibleItems = truncated ? matches.slice(0, INITIAL_ROWS) : matches;
 
   const showHome = menu.level !== "top";
   const showBack = navOnly || menu.has_back;
@@ -70,6 +105,28 @@ export function MenuBubble({
         >
           {menu.body}
         </p>
+      )}
+
+      {!navOnly && searchable && (
+        <div className="flex items-center gap-2 rounded-xl border bg-bg px-3">
+          <Search className="h-4 w-4 shrink-0 text-text-muted" aria-hidden />
+          <input
+            type="search"
+            value={query}
+            disabled={!interactive}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t("menu.searchPlaceholder")}
+            aria-label={t("menu.searchPlaceholder")}
+            className="min-h-[44px] flex-1 bg-transparent text-sm text-text placeholder:text-text-muted focus:outline-none disabled:opacity-60"
+          />
+          <span className="shrink-0 text-xs tabular-nums text-text-muted">
+            {matches.length}/{displayItems.length}
+          </span>
+        </div>
+      )}
+
+      {!navOnly && matches.length === 0 && (
+        <p className="text-sm text-text-muted">{t("menu.noMatches")}</p>
       )}
 
       {!navOnly && (
@@ -105,15 +162,11 @@ export function MenuBubble({
                 : "flex flex-col",
           )}
         >
-          {menu.items.map((item, index) => {
+          {visibleItems.map((item) => {
             const Icon = tileGrid ? iconForCategory(item.id) : null;
-            const isHero = heroSpan && index === 0;
 
             return (
-              <li
-                key={item.id}
-                className={cn(isHero && "@min-[65rem]:col-span-2")}
-              >
+              <li key={item.id}>
                 <button
                   type="button"
                   disabled={!interactive}
@@ -124,18 +177,19 @@ export function MenuBubble({
                     "transition-[background-color,border-color,box-shadow,transform] duration-200",
                     tileGrid
                       ? [
-                          // Compact icon+label chip on narrow screens; a
-                          // bottom-pinned square tile once there is room.
+                          // Compact icon+label chip on narrow screens; a square
+                          // tile once there is room. The icon and label sit as
+                          // one top-aligned unit (not pinned to opposite ends):
+                          // with rows equalised, spreading them apart left a
+                          // different gap in every tile, which read as clutter.
                           "min-h-[56px] items-center gap-2.5 px-3 py-2",
                           "@min-[65rem]:min-h-[7.25rem] @min-[65rem]:flex-col",
-                          "@min-[65rem]:items-start @min-[65rem]:justify-between",
-                          "@min-[65rem]:gap-2 @min-[65rem]:p-2.5",
-                          "bg-gradient-to-b from-surface to-surface-2/60",
+                          "@min-[65rem]:items-start @min-[65rem]:justify-start",
+                          "@min-[65rem]:gap-2.5 @min-[65rem]:p-3",
                         ]
                       : compactRows
                         ? "min-h-[44px] items-center gap-2 px-3 py-2"
                         : "items-center gap-2.5 px-3.5 py-3",
-                    isHero && "border-primary/25",
                     interactive
                       ? [
                           "hover:border-primary/40 hover:shadow-md",
@@ -194,6 +248,18 @@ export function MenuBubble({
             );
           })}
         </ul>
+      )}
+
+      {!navOnly && truncated && (
+        <button
+          type="button"
+          disabled={!interactive}
+          onClick={() => setExpanded(true)}
+          className="inline-flex items-center justify-center gap-2 rounded-full border bg-bg px-4 py-2.5 text-sm font-medium text-text-muted transition-colors hover:bg-surface-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-60"
+        >
+          <ChevronDown className="h-4 w-4" aria-hidden />
+          {t("menu.showAll", { count: matches.length - INITIAL_ROWS })}
+        </button>
       )}
 
       {showNav && (

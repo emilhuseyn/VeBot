@@ -39,6 +39,11 @@ export const az = {
   "chat.imageOpen": "Şəkli tam ölçüdə aç",
   "chat.imageFailed": "Şəkil yüklənmədi",
 
+  // Long menus
+  "menu.searchPlaceholder": "Siyahıda axtarın…",
+  "menu.noMatches": "Uyğun nəticə tapılmadı.",
+  "menu.showAll": "Daha {count} variant göstər",
+
   // Operator hand-off
   "operator.contact": "Operatorla əlaqə",
   "operator.askPhone":

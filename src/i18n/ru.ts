@@ -30,6 +30,10 @@ export const ru: Record<TranslationKey, string> = {
   "chat.imageOpen": "Открыть изображение в полном размере",
   "chat.imageFailed": "Не удалось загрузить изображение",
 
+  "menu.searchPlaceholder": "Поиск по списку…",
+  "menu.noMatches": "Совпадений не найдено.",
+  "menu.showAll": "Показать ещё {count}",
+
   "operator.contact": "Связаться с оператором",
   "operator.askPhone":
     "Для связи с оператором укажите ваш контактный номер (например, +994501234567).",
