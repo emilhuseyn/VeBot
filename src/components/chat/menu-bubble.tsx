@@ -27,6 +27,15 @@ const SEARCH_THRESHOLD = 12;
 /** How many options a searchable menu opens with. */
 const INITIAL_ROWS = 16;
 
+/** "Təqaüd\n\nSual seçin:" -> "Təqaüd · Sual seçin:" (one line, not three). */
+function compactBody(body: string): string {
+  return body
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join(" · ");
+}
+
 const EXPAND_TOGGLE_CLASSES =
   "inline-flex items-center justify-center gap-2 rounded-full border bg-bg px-4 py-2.5 text-sm font-medium text-text-muted transition-colors hover:bg-surface-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-60";
 
@@ -104,13 +113,26 @@ export function MenuBubble({
   const showNav = navOnly ? true : interactive && hasNav;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2.5">
       {!navOnly && menu.body && (
+        // The top menu's body is the actual greeting, so it reads at full size.
+        // Every other body is "‹breadcrumb›\n\nSual seçin:" — the breadcrumb
+        // just repeats the option the visitor tapped a bubble earlier and the
+        // prompt states the obvious, so it collapses to one muted caption line.
         <p
-          className="whitespace-pre-wrap break-words leading-relaxed text-text"
-          style={{ fontSize: "var(--chat-font-size)" }}
+          className={cn(
+            "whitespace-pre-wrap break-words",
+            menu.level === "top"
+              ? "leading-relaxed text-text"
+              : "text-xs leading-snug text-text-muted",
+          )}
+          style={
+            menu.level === "top"
+              ? { fontSize: "var(--chat-font-size)" }
+              : undefined
+          }
         >
-          {menu.body}
+          {menu.level === "top" ? menu.body : compactBody(menu.body)}
         </p>
       )}
 
@@ -193,8 +215,8 @@ export function MenuBubble({
                           "@min-[65rem]:gap-2.5 @min-[65rem]:p-3",
                         ]
                       : compactRows
-                        ? "min-h-[44px] items-center gap-2 px-3 py-2"
-                        : "items-center gap-2.5 px-3.5 py-3",
+                        ? "min-h-[44px] items-center gap-2 px-3 py-1.5"
+                        : "min-h-[44px] items-center gap-2.5 px-3.5 py-2",
                     interactive
                       ? [
                           "hover:border-primary/40 hover:shadow-md",

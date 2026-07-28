@@ -31,7 +31,7 @@ export function Transcript({ entries }: { entries: ChatEntry[] }) {
       aria-label={t("aria.chatLog")}
       aria-live="polite"
       aria-busy={loading}
-      className="flex flex-col gap-5 py-6"
+      className="flex flex-col gap-4 py-4"
     >
       {entries.map((entry, index) => {
         const prev = entries[index - 1];
@@ -44,7 +44,7 @@ export function Transcript({ entries }: { entries: ChatEntry[] }) {
               data-entry-id={entry.id}
               className="flex justify-end motion-safe:animate-rise-in"
             >
-              <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-surface-2 px-4 py-2.5 text-text">
+              <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-surface-2 px-3.5 py-2 text-text">
                 {entry.text}
               </div>
             </div>
@@ -129,7 +129,11 @@ function BotText({
     <div className="group">
       {hasText && (
         <div
-          className="whitespace-pre-wrap break-words leading-relaxed text-text"
+          // Body size stays at the reading default — this is a public FAQ and
+          // shrinking the answers themselves would cost more than it saves.
+          // Only the leading tightens (1.6 -> 1.5), which is still inside the
+          // comfortable band for long Azerbaijani prose.
+          className="whitespace-pre-wrap break-words leading-normal text-text"
           style={{ fontSize: "var(--chat-font-size)" }}
         >
           {linkify(text)}
