@@ -1,0 +1,108 @@
+name: Abituriyent Client CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy-client:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy using SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SECRET_KEY }}
+          port: 2222
+          script: |
+            #!/bin/bash
+            set -euo pipefail
+
+            # ========================================
+            # 1. NVM mühitini yüklə
+            # ========================================
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \
+              . "$NVM_DIR/nvm.sh" || {
+              echo "❌ nvm.sh tapılmadı: $NVM_DIR/nvm.sh"
+              exit 1
+            }
+
+            # ========================================
+            # 2. Node 20 versiyasını aktiv et
+            # ========================================
+            echo "🔄 Node 20 aktivləşdirilir..."
+            nvm use 20 || {
+              echo "⚠️ Node 20 tapılmadı, default Node istifadə olunur"
+              nvm use default
+            }
+
+            # ========================================
+            # 3. Versiyaları yoxla
+            # ========================================
+            echo "🔎 Quraşdırılmış versiyalar:"
+            node -v || { echo "❌ node tapılmadı"; exit 1; }
+            npm -v  || { echo "❌ npm tapılmadı"; exit 1; }
+            pm2 -v  || { echo "❌ pm2 tapılmadı"; exit 1; }
+
+            # ========================================
+            # 4. Proyekt konfiqurasiyası
+            # ========================================
+            APP_NAME="abituriyent-client"
+            CWD="/var/www/abituriyent.bdu.co.az/client"
+            export NODE_ENV=production
+            export PORT=3040
+
+            echo "➡️ Proyekt qovluğuna keçilir: $CWD"
+            cd "$CWD" || { echo "❌ Qovluq tapılmadı: $CWD"; exit 1; }
+
+            # ========================================
+            # 5. Git repository-ni yenilə
+            # ========================================
+            echo "📥 Repository yenilənir..."
+            git fetch --all --prune
+
+            if ! git merge --ff-only origin/main; then
+              echo "⚠️ Fast-forward merge mümkün olmadı, hard reset edilir..."
+              git reset --hard origin/main
+            fi
+
+            echo "✅ Repository yeniləndi: $(git rev-parse --short HEAD)"
+
+            # ========================================
+            # 6. Dependencies quraşdır
+            # ========================================
+            # NODE_ENV=production olduğu üçün npm devDependencies-i atlayır,
+            # amma vite/typescript orada yaşayır — buna görə --include=dev.
+            echo "📦 Dependencies quraşdırılır..."
+            npm ci --include=dev --no-audit --no-fund || {
+              echo "⚠️ npm ci alınmadı (lockfile uyğunsuzluğu?), npm install edilir..."
+              npm install --include=dev --no-audit --no-fund
+            }
+
+            # ========================================
+            # 7. Vite Build
+            # ========================================
+            echo "🏗️ Vite build edilir..."
+            npm run build
+
+            # ========================================
+            # 8. PM2 ilə restart et
+            # ========================================
+            echo "🚀 PM2 ilə aplikasiya restart edilir..."
+
+            if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
+              pm2 restart "$APP_NAME" --update-env
+            else
+              echo "🆕 Yeni aplikasiya başladılır..."
+              pm2 start "npm start" --name "$APP_NAME"
+            fi
+
+            pm2 save --force
+
+            echo "✅ Abituriyent client deploy uğurla tamamlandı (port $PORT)."

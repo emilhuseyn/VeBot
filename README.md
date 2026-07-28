@@ -12,10 +12,14 @@ UI chrome localized (AZ / EN / RU); FAQ content is Azerbaijani.
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
+npm run dev        # http://localhost:3040
 npm run build      # typecheck + production build
-npm run preview    # serve the production build
+npm start          # serve the production build on the same port
 ```
+
+The port comes from `PORT` (process env first, then `.env`) and falls back to
+**3040**; `strictPort` is on, so a busy port fails loudly instead of drifting to
+another one behind the reverse proxy.
 
 Out of the box it runs against a built-in **offline mock** of the backend, so no server
 is required to develop or demo.
