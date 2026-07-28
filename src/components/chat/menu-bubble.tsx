@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronUp,
+  ExternalLink,
   Headset,
   Home,
   Search,
@@ -170,14 +171,12 @@ export function MenuBubble({
         >
           {visibleItems.map((item) => {
             const Icon = tileGrid ? iconForCategory(item.id) : null;
+            // A row that leads to nothing but a link is an anchor, so the tap
+            // opens it directly — no request, and no popup blocker (which is
+            // what would kill a window.open() issued after an async reply).
+            const isLink = Boolean(item.url) && interactive;
 
-            return (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  disabled={!interactive}
-                  onClick={() => onSelect(item)}
-                  className={cn(
+            const rowClasses = cn(
                     "group relative flex h-full w-full text-left",
                     "rounded-xl border bg-surface",
                     "transition-[background-color,border-color,box-shadow,transform] duration-200",
@@ -204,42 +203,54 @@ export function MenuBubble({
                           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
                         ]
                       : "cursor-default opacity-60",
-                  )}
-                >
-                  {Icon && (
-                    <span
-                      aria-hidden
-                      className={cn(
-                        "grid shrink-0 place-items-center rounded-lg",
-                        "bg-primary/10 text-primary ring-1 ring-inset ring-primary/10",
-                        "transition-colors duration-200",
-                        "h-7 w-7 @min-[65rem]:h-8 @min-[65rem]:w-8",
-                        interactive && "group-hover:bg-primary/20",
-                      )}
-                    >
-                      <Icon
-                        className="h-4 w-4 @min-[65rem]:h-[18px] @min-[65rem]:w-[18px]"
-                        strokeWidth={1.75}
-                      />
-                    </span>
-                  )}
+            );
 
+            const rowContent = (
+              <>
+                {Icon && (
                   <span
+                    aria-hidden
                     className={cn(
-                      "min-w-0 flex-1 font-medium leading-snug text-text",
-                      // Never let an Azerbaijani compound word overflow a tile.
-                      tileGrid && "break-words @min-[65rem]:flex-none",
+                      "grid shrink-0 place-items-center rounded-lg",
+                      "bg-primary/10 text-primary ring-1 ring-inset ring-primary/10",
+                      "transition-colors duration-200",
+                      "h-7 w-7 @min-[65rem]:h-8 @min-[65rem]:w-8",
+                      interactive && "group-hover:bg-primary/20",
                     )}
-                    style={{
-                      fontSize: `calc(var(--chat-font-size) * ${
-                        tileGrid ? "0.82" : compactRows ? "0.86" : "0.95"
-                      })`,
-                    }}
                   >
-                    {item.label}
+                    <Icon
+                      className="h-4 w-4 @min-[65rem]:h-[18px] @min-[65rem]:w-[18px]"
+                      strokeWidth={1.75}
+                    />
                   </span>
+                )}
 
-                  {!tileGrid && (
+                <span
+                  className={cn(
+                    "min-w-0 flex-1 font-medium leading-snug text-text",
+                    // Never let an Azerbaijani compound word overflow a tile.
+                    tileGrid && "break-words @min-[65rem]:flex-none",
+                  )}
+                  style={{
+                    fontSize: `calc(var(--chat-font-size) * ${
+                      tileGrid ? "0.82" : compactRows ? "0.86" : "0.95"
+                    })`,
+                  }}
+                >
+                  {item.label}
+                </span>
+
+                {isLink ? (
+                  <ExternalLink
+                    className={cn(
+                      "h-4 w-4 shrink-0 text-text-muted transition-colors duration-150",
+                      "group-hover:text-primary",
+                      tileGrid && "@min-[65rem]:absolute @min-[65rem]:right-3 @min-[65rem]:top-3",
+                    )}
+                    aria-hidden
+                  />
+                ) : (
+                  !tileGrid && (
                     <ChevronRight
                       className={cn(
                         "h-4 w-4 shrink-0 text-text-muted transition-transform duration-150",
@@ -248,8 +259,32 @@ export function MenuBubble({
                       )}
                       aria-hidden
                     />
-                  )}
-                </button>
+                  )
+                )}
+              </>
+            );
+
+            return (
+              <li key={item.id}>
+                {isLink ? (
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={rowClasses}
+                  >
+                    {rowContent}
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={!interactive}
+                    onClick={() => onSelect(item)}
+                    className={rowClasses}
+                  >
+                    {rowContent}
+                  </button>
+                )}
               </li>
             );
           })}

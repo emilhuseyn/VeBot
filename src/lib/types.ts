@@ -11,6 +11,12 @@ export type MenuLevel = "top" | "subcat" | "sub";
 export interface MenuItem {
   id: string;
   label: string;
+  /**
+   * Present when the row leads to nothing but a link (e.g. the virtual tour).
+   * The row is then rendered as an anchor, so the tap itself opens the link —
+   * no round-trip, and no popup blocker to fight.
+   */
+  url?: string;
 }
 
 export interface Menu {
@@ -53,7 +59,9 @@ export interface RawImageFields {
 }
 
 export type WebMessage =
-  | ({ type: "text"; text: string } & RawImageFields)
+  // `url` is set when the answer is nothing but a link, so it can be offered
+  // as a button rather than printed as a bare address to copy.
+  | ({ type: "text"; text: string; url?: string } & RawImageFields)
   | ({ type: "menu"; menu: Menu } & RawImageFields)
   | ({
       type: "image";
@@ -92,6 +100,8 @@ export type ChatEntry =
       kind: "text";
       text: string;
       images?: ChatImage[];
+      /** Set when the answer is only a link — rendered as an "open" button. */
+      url?: string;
       createdAt: number;
     }
   | {

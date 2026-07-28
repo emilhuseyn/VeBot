@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
+  ExternalLink,
   ListTree,
   PanelLeftClose,
   PanelLeftOpen,
@@ -155,17 +156,39 @@ function SidebarContent({
             </div>
           ) : (
             <ul className="flex flex-col">
-              {items.map((item) => (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleCategory(item)}
-                    className="flex w-full items-center gap-2 truncate rounded-md px-2.5 py-2 text-left text-sm text-text-muted transition-colors hover:bg-surface-2/70 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-1 focus-visible:ring-offset-surface"
-                  >
-                    <span className="flex-1 truncate">{item.label}</span>
-                  </button>
-                </li>
-              ))}
+              {items.map((item) => {
+                const rowClasses =
+                  "flex w-full items-center gap-2 truncate rounded-md px-2.5 py-2 text-left text-sm text-text-muted transition-colors hover:bg-surface-2/70 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-1 focus-visible:ring-offset-surface";
+                return (
+                  <li key={item.id}>
+                    {/* A link-only category (the virtual tour) opens straight
+                        from the tap, exactly as it does in the chat menu. */}
+                    {item.url ? (
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={closeDrawer}
+                        className={rowClasses}
+                      >
+                        <span className="flex-1 truncate">{item.label}</span>
+                        <ExternalLink
+                          className="h-3.5 w-3.5 shrink-0"
+                          aria-hidden
+                        />
+                      </a>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleCategory(item)}
+                        className={rowClasses}
+                      >
+                        <span className="flex-1 truncate">{item.label}</span>
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

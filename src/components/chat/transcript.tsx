@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, ExternalLink } from "lucide-react";
 import type { ChatEntry, ChatImage } from "@/lib/types";
 import { AssistantAvatar } from "@/components/ui/logo";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -63,7 +63,11 @@ export function Transcript({ entries }: { entries: ChatEntry[] }) {
         return (
           <BotRow key={entry.id} entryId={entry.id} showAvatar={firstOfBotGroup}>
             {entry.kind === "text" ? (
-              <BotText text={entry.text} images={entry.images} />
+              <BotText
+                text={entry.text}
+                images={entry.images}
+                url={entry.url}
+              />
             ) : (
               <MenuBubble
                 menu={entry.menu}
@@ -106,10 +110,21 @@ function BotRow({
   );
 }
 
-function BotText({ text, images }: { text: string; images?: ChatImage[] }) {
+function BotText({
+  text,
+  images,
+  url,
+}: {
+  text: string;
+  images?: ChatImage[];
+  url?: string;
+}) {
   const { t } = useI18n();
   const { copied, copy } = useCopyToClipboard();
-  const hasText = text.trim().length > 0;
+  // When the answer is nothing but a link, the address itself is noise — the
+  // action is what matters, so offer a button and drop the bare URL.
+  const isLinkOnly = Boolean(url) && text.trim() === url?.trim();
+  const hasText = !isLinkOnly && text.trim().length > 0;
   return (
     <div className="group">
       {hasText && (
@@ -121,6 +136,22 @@ function BotText({ text, images }: { text: string; images?: ChatImage[] }) {
         </div>
       )}
       {images && images.length > 0 && <ChatImageGrid images={images} />}
+      {url && (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            "inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2.5",
+            "text-sm font-medium text-primary transition-colors hover:bg-primary/15",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
+            hasText && "mt-2.5",
+          )}
+        >
+          <ExternalLink className="h-4 w-4" aria-hidden />
+          {t("chat.openLink")}
+        </a>
+      )}
       {hasText && (
         <div className="mt-1 flex h-7 items-center opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100">
         <Tooltip content={copied ? t("chat.copied") : t("chat.copy")}>

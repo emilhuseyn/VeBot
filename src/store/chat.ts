@@ -29,11 +29,16 @@ function toBotEntry(message: WebMessage): ChatEntry {
         ? message.caption
         : "";
   const text = images.length > 0 ? stripImageSyntax(rawText) : rawText;
+  const url =
+    message.type === "text" && typeof message.url === "string"
+      ? message.url
+      : undefined;
   return {
     ...base,
     kind: "text",
     text,
     ...(images.length > 0 ? { images } : {}),
+    ...(url ? { url } : {}),
   };
 }
 

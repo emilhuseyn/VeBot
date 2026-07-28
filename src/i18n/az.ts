@@ -36,6 +36,7 @@ export const az = {
   "chat.retry": "Yenidən cəhd et",
   "chat.copy": "Kopyala",
   "chat.copied": "Kopyalandı",
+  "chat.openLink": "Keçidi aç",
   "chat.imageOpen": "Şəkli tam ölçüdə aç",
   "chat.imageFailed": "Şəkil yüklənmədi",
 

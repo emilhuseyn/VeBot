@@ -27,6 +27,7 @@ export const ru: Record<TranslationKey, string> = {
   "chat.retry": "Повторить",
   "chat.copy": "Копировать",
   "chat.copied": "Скопировано",
+  "chat.openLink": "Открыть ссылку",
   "chat.imageOpen": "Открыть изображение в полном размере",
   "chat.imageFailed": "Не удалось загрузить изображение",
 
