@@ -27,6 +27,14 @@ export function MenuBubble({
   onNav: (navId: string) => void;
 }) {
   const { t } = useI18n();
+  // Menus whose options are all short labels (categories, sub-categories) lay
+  // out as a two-column grid on wider screens — 15 categories as full-width
+  // rows ran ~790px tall while most of the row sat empty. Question lists have
+  // long labels, so they stay single-column full-width for readability, and
+  // mobile is always single-column.
+  const compactGrid =
+    menu.items.length >= 4 &&
+    menu.items.every((item) => item.label.length <= 34);
   const showHome = menu.level !== "top";
   // In navOnly (post-answer) mode always offer Back — it re-opens the question
   // list so the user can pick another question. The backend omits has_back for
@@ -52,7 +60,12 @@ export function MenuBubble({
       )}
 
       {!navOnly && (
-        <ul className="flex flex-col gap-1.5">
+        <ul
+          className={cn(
+            "gap-1.5",
+            compactGrid ? "grid sm:grid-cols-2" : "flex flex-col",
+          )}
+        >
           {menu.items.map((item) => (
             <li key={item.id}>
               <button
@@ -60,7 +73,12 @@ export function MenuBubble({
                 disabled={!interactive}
                 onClick={() => onSelect(item)}
                 className={cn(
-                  "group flex w-full items-center gap-2.5 rounded-lg border bg-surface px-3.5 py-3 text-left transition-[background-color,border-color,transform,box-shadow] duration-150",
+                  "group flex w-full items-center gap-2 rounded-lg border bg-surface text-left transition-[background-color,border-color,transform,box-shadow] duration-150",
+                  // Compact rows, but never below the 44px touch-target minimum.
+                  // h-full keeps grid siblings level when one label wraps.
+                  compactGrid
+                    ? "h-full min-h-[44px] px-3 py-2"
+                    : "px-3.5 py-3",
                   interactive
                     ? "hover:border-primary/40 hover:bg-bg hover:shadow-sm motion-safe:hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
                     : "cursor-default opacity-60",
@@ -68,7 +86,11 @@ export function MenuBubble({
               >
                 <span
                   className="flex-1 font-medium leading-snug text-text"
-                  style={{ fontSize: "calc(var(--chat-font-size) * 0.95)" }}
+                  style={{
+                    fontSize: `calc(var(--chat-font-size) * ${
+                      compactGrid ? "0.92" : "0.95"
+                    })`,
+                  }}
                 >
                   {item.label}
                 </span>
