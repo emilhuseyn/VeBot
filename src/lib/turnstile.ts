@@ -43,6 +43,16 @@ declare global {
   }
 }
 
+/**
+ * Turnstile has no Azerbaijani locale — passing "az" makes it warn and fall
+ * back to English. Turkish is the closest widely-understood option for this
+ * audience, so map to that rather than letting it drop to en-US.
+ */
+export function turnstileLanguage(locale: string): string {
+  if (locale === "az") return "tr";
+  return locale;
+}
+
 let scriptPromise: Promise<TurnstileApi> | null = null;
 
 /** Inject the Turnstile script once and resolve when its API is ready. */

@@ -10,7 +10,11 @@ import { ArrowUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useChatStore } from "@/store/chat";
 import { useResolvedTheme } from "@/components/providers/global-effects";
-import { loadTurnstile, TURNSTILE_SITE_KEY } from "@/lib/turnstile";
+import {
+  loadTurnstile,
+  turnstileLanguage,
+  TURNSTILE_SITE_KEY,
+} from "@/lib/turnstile";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 
@@ -79,7 +83,7 @@ export function OperatorPanel() {
           sitekey: TURNSTILE_SITE_KEY,
           theme,
           size: "flexible",
-          language: locale,
+          language: turnstileLanguage(locale),
           callback: (token) => {
             tokenRef.current = token;
             tokenWaitersRef.current.splice(0).forEach((resolve) => resolve(token));
