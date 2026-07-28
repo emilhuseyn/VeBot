@@ -107,8 +107,15 @@ export function MenuBubble({
 
   const showHome = menu.level !== "top";
   const showBack = navOnly || menu.has_back;
+  // After an answer, Back re-opens the question list so another question can be
+  // picked — but only when there IS another one. A list holding a single
+  // question is auto-advanced straight back into the same answer, so re-opening
+  // it would answer the same thing again on every press; there, Back has to
+  // actually go up a level.
   const backTarget =
-    navOnly ? menu.subcategory_id ?? menu.category_id ?? NAV.back : NAV.back;
+    navOnly && menu.items.length > 1
+      ? (menu.subcategory_id ?? menu.category_id ?? NAV.back)
+      : NAV.back;
   const hasNav = showBack || showHome || menu.has_prev || menu.has_next;
   const showNav = navOnly ? true : interactive && hasNav;
 
