@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Copy, ExternalLink } from "lucide-react";
-import type { ChatEntry, ChatImage } from "@/lib/types";
+import { Check, Copy, ExternalLink, Home } from "lucide-react";
+import { NAV, type ChatEntry, type ChatImage } from "@/lib/types";
 import { AssistantAvatar } from "@/components/ui/logo";
 import { Tooltip } from "@/components/ui/tooltip";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
-import { MenuBubble } from "@/components/chat/menu-bubble";
+import { MenuBubble, NavChip } from "@/components/chat/menu-bubble";
 import { ChatImageGrid } from "@/components/chat/chat-image";
 import { useChatStore } from "@/store/chat";
 import { useCopyToClipboard } from "@/lib/hooks";
@@ -26,6 +26,9 @@ export function Transcript({ entries }: { entries: ChatEntry[] }) {
   for (const entry of entries) {
     if (entry.role === "bot" && entry.kind === "menu") lastMenuId = entry.id;
   }
+  // The operator success note's home chip follows the same rule: live only
+  // while it is the newest entry, a muted record afterwards.
+  const lastEntryId = entries[entries.length - 1]?.id ?? null;
 
   return (
     <div
@@ -56,11 +59,27 @@ export function Transcript({ entries }: { entries: ChatEntry[] }) {
         return (
           <BotRow key={entry.id} entryId={entry.id} showAvatar={firstOfBotGroup}>
             {entry.kind === "text" ? (
-              <BotText
-                text={entry.text}
-                images={entry.images}
-                url={entry.url}
-              />
+              <>
+                <BotText
+                  text={entry.text}
+                  images={entry.images}
+                  url={entry.url}
+                />
+                {entry.showHome && (
+                  <div className="mt-2.5">
+                    <NavChip
+                      icon={<Home className="h-4 w-4" aria-hidden />}
+                      label={t("nav.home")}
+                      disabled={
+                        entry.id !== lastEntryId ||
+                        loading ||
+                        operatorStep !== "idle"
+                      }
+                      onClick={() => nav(NAV.home)}
+                    />
+                  </div>
+                )}
+              </>
             ) : (
               <MenuBubble
                 menu={entry.menu}

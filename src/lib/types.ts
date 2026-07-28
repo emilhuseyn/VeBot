@@ -102,6 +102,12 @@ export type ChatEntry =
       images?: ChatImage[];
       /** Set when the answer is only a link — rendered as an "open" button. */
       url?: string;
+      /**
+       * Renders an "Əsas menyu" chip under the text. Set on the operator
+       * hand-off's success note, which ends the flow with no control nearby —
+       * the nearest nav chips are above the whole phone/question exchange.
+       */
+      showHome?: boolean;
       createdAt: number;
     }
   | {

@@ -428,7 +428,7 @@ export function MenuBubble({
   );
 }
 
-function NavChip({
+export function NavChip({
   icon,
   label,
   onClick,

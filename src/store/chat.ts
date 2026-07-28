@@ -60,8 +60,18 @@ function userEntry(text: string): ChatEntry {
 }
 
 /** A bot bubble the widget produces locally (operator prompts, results). */
-function localBotEntry(text: string): ChatEntry {
-  return { id: uid(), role: "bot", kind: "text", text, createdAt: Date.now() };
+function localBotEntry(
+  text: string,
+  opts?: { showHome?: boolean },
+): ChatEntry {
+  return {
+    id: uid(),
+    role: "bot",
+    kind: "text",
+    text,
+    ...(opts?.showHome ? { showHome: true } : {}),
+    createdAt: Date.now(),
+  };
 }
 
 /**
@@ -293,7 +303,12 @@ export const useChatStore = create<ChatState>()(
           }
 
           set((s) => ({
-            entries: [...s.entries, localBotEntry(result.message)],
+            // Success ends the hand-off, so the note carries an "Əsas menyu"
+            // chip — otherwise the flow finishes with no control in reach.
+            entries: [
+              ...s.entries,
+              localBotEntry(result.message, { showHome: result.ok }),
+            ],
             // On failure return to the message step so the visitor can resubmit
             // without re-entering their phone number.
             operatorStep: result.ok ? "idle" : "message",
