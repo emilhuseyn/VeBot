@@ -30,6 +30,20 @@ export const ru: Record<TranslationKey, string> = {
   "chat.imageOpen": "Открыть изображение в полном размере",
   "chat.imageFailed": "Не удалось загрузить изображение",
 
+  "operator.contact": "Связаться с оператором",
+  "operator.askPhone":
+    "Для связи с оператором укажите ваш контактный номер (например, +994501234567).",
+  "operator.askMessage": "Теперь напишите ваш вопрос — оператор свяжется с вами.",
+  "operator.phonePlaceholder": "+994 50 123 45 67",
+  "operator.messagePlaceholder": "Напишите ваш вопрос…",
+  "operator.send": "Отправить",
+  "operator.next": "Продолжить",
+  "operator.cancel": "Отмена",
+  "operator.cancelled": "Запрос к оператору отменён.",
+  "operator.sending": "Отправка…",
+  "operator.phoneInvalid":
+    "Укажите контактный номер в правильном формате (например, +994501234567).",
+
   "nav.home": "Главное меню",
   "nav.back": "Назад",
   "nav.prev": "Предыдущая",

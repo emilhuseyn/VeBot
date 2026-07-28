@@ -35,6 +35,94 @@ const MOCK_MIN_LATENCY_MS = 260;
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
+/* ── Operator hand-off ──────────────────────────────────────────────────── */
+
+export interface OperatorRequestInput {
+  phone: string;
+  message: string;
+  turnstileToken: string;
+  sessionId: string;
+  /** Honeypot: must stay empty. A filled value is silently discarded server-side. */
+  website?: string;
+}
+
+export interface OperatorRequestResult {
+  ok: boolean;
+  /** Azerbaijani copy from the backend — shown to the user verbatim. */
+  message: string;
+  /** True for 400/403, where the single-use Turnstile token must be reset. */
+  shouldResetTurnstile: boolean;
+}
+
+/**
+ * POST /web/operator-request — logs a call-back request for a human operator.
+ *
+ * The backend owns all user-facing copy here (success and every failure), so
+ * its `detail` is surfaced verbatim rather than being re-worded locally.
+ * Turnstile tokens are single-use: any non-200 needs a widget reset before the
+ * visitor can submit again.
+ */
+export async function sendOperatorRequest(
+  input: OperatorRequestInput,
+): Promise<OperatorRequestResult> {
+  if (USING_MOCK) {
+    await sleep(MOCK_MIN_LATENCY_MS + Math.random() * 200);
+    return {
+      ok: true,
+      message: "Sorğunuz qeydə alındı, tezliklə sizinlə əlaqə saxlanılacaq.",
+      shouldResetTurnstile: false,
+    };
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(`${RAW_BASE}/web/operator-request`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        phone: input.phone,
+        message: input.message,
+        turnstile_token: input.turnstileToken,
+        session_id: input.sessionId,
+        website: input.website ?? "",
+      }),
+    });
+  } catch {
+    return {
+      ok: false,
+      message: "Bağlantı xətası baş verdi. Zəhmət olmasa yenidən cəhd edin.",
+      // No response reached the server, so the token was never spent — but
+      // resetting is harmless and keeps the widget in a submittable state.
+      shouldResetTurnstile: true,
+    };
+  }
+
+  let payload: { ok?: boolean; message?: string; detail?: string } = {};
+  try {
+    payload = (await res.json()) as typeof payload;
+  } catch {
+    /* non-JSON error page — fall back to the generic copy below */
+  }
+
+  if (res.ok) {
+    return {
+      ok: true,
+      message:
+        payload.message ??
+        "Sorğunuz qeydə alındı, tezliklə sizinlə əlaqə saxlanılacaq.",
+      shouldResetTurnstile: false,
+    };
+  }
+
+  return {
+    ok: false,
+    message:
+      payload.detail ??
+      "Sorğunuzu qeydə ala bilmədik. Zəhmət olmasa bir az sonra yenidən cəhd edin.",
+    shouldResetTurnstile: true,
+  };
+}
+
 export async function sendMessage(
   sessionId: string,
   input: MessageInput,

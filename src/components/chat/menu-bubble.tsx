@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
-import { ArrowLeft, ArrowRight, ChevronRight, Home } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronRight, Headset, Home } from "lucide-react";
 import { NAV, type Menu, type MenuItem } from "@/lib/types";
 import { iconForCategory } from "@/lib/category-icons";
+import { TURNSTILE_CONFIGURED } from "@/lib/turnstile";
+import { useChatStore } from "@/store/chat";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 
@@ -28,6 +30,8 @@ export function MenuBubble({
   onNav: (navId: string) => void;
 }) {
   const { t } = useI18n();
+  const startOperator = useChatStore((s) => s.startOperator);
+  const operatorStep = useChatStore((s) => s.operatorStep);
 
   // The top-level category menu renders as a bento tile grid: 15 short labels
   // as full-width rows ran ~790px, and even two columns of rows ~394px. Square
@@ -214,6 +218,17 @@ export function MenuBubble({
               onClick={() => onNav(NAV.home)}
             />
           )}
+          {/* Offered once an answer has been given: if the stored answer didn't
+              help, this is the way to reach a human. */}
+          {navOnly && TURNSTILE_CONFIGURED && (
+            <NavChip
+              icon={<Headset className="h-4 w-4" aria-hidden />}
+              label={t("operator.contact")}
+              disabled={!interactive || operatorStep !== "idle"}
+              onClick={() => startOperator(t("operator.askPhone"))}
+              highlight
+            />
+          )}
           <div className="flex-1" />
           {!navOnly && menu.total_pages > 1 && (
             <span className="px-1 text-xs tabular-nums text-text-muted">
@@ -249,12 +264,15 @@ function NavChip({
   onClick,
   disabled = false,
   iconRight = false,
+  highlight = false,
 }: {
   icon: ReactNode;
   label: string;
   onClick: () => void;
   disabled?: boolean;
   iconRight?: boolean;
+  /** Primary-tinted: used for the operator hand-off, which is an escalation. */
+  highlight?: boolean;
 }) {
   return (
     <button
@@ -265,7 +283,9 @@ function NavChip({
         "inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
         disabled
           ? "cursor-default bg-surface-2/40 text-text-muted/60"
-          : "bg-bg text-text-muted hover:bg-surface-2 hover:text-text",
+          : highlight
+            ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
+            : "bg-bg text-text-muted hover:bg-surface-2 hover:text-text",
       )}
     >
       {!iconRight && icon}

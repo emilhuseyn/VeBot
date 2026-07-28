@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { AlertCircle } from "lucide-react";
 import { Transcript } from "@/components/chat/transcript";
 import { ScrollToBottomButton } from "@/components/chat/scroll-to-bottom";
+import { OperatorPanel } from "@/components/chat/operator-panel";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useChatStore } from "@/store/chat";
@@ -134,6 +135,7 @@ export function ChatArea() {
                 </Button>
               </div>
             )}
+            <OperatorPanel />
           </div>
         </div>
       </div>

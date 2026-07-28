@@ -4,7 +4,12 @@ import type { ChatEntry, WebMessage } from "@/lib/types";
 import type { MenuItem } from "@/lib/types";
 import { uid } from "@/lib/utils";
 import { extractImages, stripImageSyntax } from "@/lib/images";
-import { resetSession, sendMessage, type MessageInput } from "@/services/faq-api";
+import {
+  resetSession,
+  sendMessage,
+  sendOperatorRequest,
+  type MessageInput,
+} from "@/services/faq-api";
 import { persistence, STORAGE_KEYS } from "@/services/persistence";
 
 /** The last input sent, kept out of persisted state so "retry" can replay it. */
@@ -36,6 +41,17 @@ function userEntry(text: string): ChatEntry {
   return { id: uid(), role: "user", text, createdAt: Date.now() };
 }
 
+/** A bot bubble the widget produces locally (operator prompts, results). */
+function localBotEntry(text: string): ChatEntry {
+  return { id: uid(), role: "bot", kind: "text", text, createdAt: Date.now() };
+}
+
+/**
+ * Operator hand-off is a two-step conversation: ask for a phone number, then
+ * for the question, then POST both. `idle` means no hand-off is in progress.
+ */
+export type OperatorStep = "idle" | "phone" | "message" | "sending";
+
 interface ChatState {
   sessionId: string;
   entries: ChatEntry[];
@@ -53,6 +69,17 @@ interface ChatState {
   nav: (navId: string) => void;
   reset: () => void;
   retry: () => void;
+
+  /** Operator hand-off (phone → question → submit). */
+  operatorStep: OperatorStep;
+  operatorPhone: string;
+  startOperator: (prompt: string) => void;
+  submitOperatorPhone: (phone: string, nextPrompt: string) => void;
+  submitOperatorMessage: (
+    message: string,
+    getToken: () => Promise<string>,
+  ) => Promise<{ ok: boolean; shouldResetTurnstile: boolean }>;
+  cancelOperator: (note: string) => void;
 }
 
 export const useChatStore = create<ChatState>()(
@@ -112,6 +139,79 @@ export const useChatStore = create<ChatState>()(
         retry: () => {
           if (!lastInput || get().loading) return;
           void run(lastInput);
+        },
+
+        operatorStep: "idle",
+        operatorPhone: "",
+
+        startOperator: (prompt) => {
+          if (get().loading || get().operatorStep !== "idle") return;
+          set((s) => ({
+            entries: [...s.entries, localBotEntry(prompt)],
+            operatorStep: "phone",
+            operatorPhone: "",
+          }));
+        },
+
+        submitOperatorPhone: (phone, nextPrompt) => {
+          const trimmed = phone.trim();
+          if (!trimmed || get().operatorStep !== "phone") return;
+          set((s) => ({
+            entries: [
+              ...s.entries,
+              userEntry(trimmed),
+              localBotEntry(nextPrompt),
+            ],
+            operatorPhone: trimmed,
+            operatorStep: "message",
+          }));
+        },
+
+        submitOperatorMessage: async (message, getToken) => {
+          const trimmed = message.trim();
+          if (!trimmed || get().operatorStep !== "message") {
+            return { ok: false, shouldResetTurnstile: false };
+          }
+          set((s) => ({
+            entries: [...s.entries, userEntry(trimmed)],
+            operatorStep: "sending",
+          }));
+
+          let token = "";
+          try {
+            token = await getToken();
+          } catch {
+            // Fall through with an empty token: the backend fails closed and
+            // returns the right Azerbaijani copy for a failed verification.
+          }
+
+          const result = await sendOperatorRequest({
+            phone: get().operatorPhone,
+            message: trimmed,
+            turnstileToken: token,
+            sessionId: get().sessionId,
+          });
+
+          set((s) => ({
+            entries: [...s.entries, localBotEntry(result.message)],
+            // On failure return to the message step so the visitor can resubmit
+            // without re-entering their phone number.
+            operatorStep: result.ok ? "idle" : "message",
+            operatorPhone: result.ok ? "" : s.operatorPhone,
+          }));
+          return {
+            ok: result.ok,
+            shouldResetTurnstile: result.shouldResetTurnstile,
+          };
+        },
+
+        cancelOperator: (note) => {
+          if (get().operatorStep === "idle") return;
+          set((s) => ({
+            entries: [...s.entries, localBotEntry(note)],
+            operatorStep: "idle",
+            operatorPhone: "",
+          }));
         },
       };
     },

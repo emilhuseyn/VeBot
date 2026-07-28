@@ -39,6 +39,21 @@ export const az = {
   "chat.imageOpen": "Şəkli tam ölçüdə aç",
   "chat.imageFailed": "Şəkil yüklənmədi",
 
+  // Operator hand-off
+  "operator.contact": "Operatorla əlaqə",
+  "operator.askPhone":
+    "Operatorla əlaqə üçün zəhmət olmasa əlaqə nömrənizi yazın (məs. +994501234567).",
+  "operator.askMessage": "İndi sualınızı yazın — operator sizinlə əlaqə saxlayacaq.",
+  "operator.phonePlaceholder": "+994 50 123 45 67",
+  "operator.messagePlaceholder": "Sualınızı yazın…",
+  "operator.send": "Göndər",
+  "operator.next": "Davam et",
+  "operator.cancel": "Ləğv et",
+  "operator.cancelled": "Operatorla əlaqə sorğusu ləğv edildi.",
+  "operator.sending": "Göndərilir…",
+  "operator.phoneInvalid":
+    "Zəhmət olmasa əlaqə nömrənizi düzgün formatda yazın (məs. +994501234567).",
+
   // Menu navigation
   "nav.home": "Əsas menyu",
   "nav.back": "Geri",
