@@ -25,19 +25,21 @@ import { useI18n } from "@/i18n";
 
 /** Above this many options a menu gets a filter box. */
 const SEARCH_THRESHOLD = 12;
-/** How many options a searchable menu opens with. */
-const INITIAL_ROWS = 16;
+/** How many options a searchable menu opens with — one phone screen's worth. */
+const INITIAL_ROWS = 8;
 
 /**
  * "Təqaüd\n\nSual seçin:" -> "Təqaüd" — one muted breadcrumb line. The
- * backend's "Sual seçin:" prompt is dropped entirely: the tappable list
- * right below already says it.
+ * backend's pick-prompt line ("Sual seçin:", "Alt-mövzu seçin:", …) is
+ * dropped entirely: the tappable list right below already says it.
  */
+const PICK_PROMPT = /^.{0,24}seçin:$/i;
+
 function compactBody(body: string): string {
   return body
     .split(/\n+/)
     .map((line) => line.trim())
-    .filter((line) => line && line !== "Sual seçin:")
+    .filter((line) => line && !PICK_PROMPT.test(line))
     .join(" · ");
 }
 
