@@ -28,12 +28,16 @@ const SEARCH_THRESHOLD = 12;
 /** How many options a searchable menu opens with. */
 const INITIAL_ROWS = 16;
 
-/** "Təqaüd\n\nSual seçin:" -> "Təqaüd · Sual seçin:" (one line, not three). */
+/**
+ * "Təqaüd\n\nSual seçin:" -> "Təqaüd" — one muted breadcrumb line. The
+ * backend's "Sual seçin:" prompt is dropped entirely: the tappable list
+ * right below already says it.
+ */
 function compactBody(body: string): string {
   return body
     .split(/\n+/)
     .map((line) => line.trim())
-    .filter(Boolean)
+    .filter((line) => line && line !== "Sual seçin:")
     .join(" · ");
 }
 
@@ -131,30 +135,34 @@ export function MenuBubble({
 
   return (
     <div className="flex flex-col gap-2.5">
-      {!navOnly && menu.body && (
-        // The top menu's greeting is the widget's own copy (t("chat.greeting")),
-        // not the backend body — the web widget owns this line, and the
-        // backend's "pick a category" prompt is dropped as the tiles below
-        // already say that. Every other body is "‹breadcrumb›\n\nSual seçin:" —
-        // the breadcrumb just repeats the option the visitor tapped a bubble
-        // earlier and the prompt states the obvious, so it collapses to one
-        // muted caption line.
-        <p
-          className={cn(
-            "whitespace-pre-wrap break-words",
-            menu.level === "top"
-              ? "leading-relaxed text-text"
-              : "text-xs leading-snug text-text-muted",
-          )}
-          style={
-            menu.level === "top"
-              ? { fontSize: "var(--chat-font-size)" }
-              : undefined
-          }
-        >
-          {menu.level === "top" ? t("chat.greeting") : compactBody(menu.body)}
-        </p>
-      )}
+      {!navOnly &&
+        (() => {
+          // The top menu's greeting is the widget's own copy
+          // (t("chat.greeting")), not the backend body — the web widget owns
+          // this line. Every other body collapses to one muted breadcrumb
+          // caption (see compactBody); when nothing but the dropped prompt
+          // was there, no caption renders at all.
+          const caption =
+            menu.level === "top" ? t("chat.greeting") : compactBody(menu.body);
+          if (!caption) return null;
+          return (
+            <p
+              className={cn(
+                "whitespace-pre-wrap break-words",
+                menu.level === "top"
+                  ? "leading-relaxed text-text"
+                  : "text-xs leading-snug text-text-muted",
+              )}
+              style={
+                menu.level === "top"
+                  ? { fontSize: "var(--chat-font-size)" }
+                  : undefined
+              }
+            >
+              {caption}
+            </p>
+          );
+        })()}
 
       {!navOnly && searchable && (
         <div className="flex items-center gap-2 rounded-xl border bg-bg px-3">
