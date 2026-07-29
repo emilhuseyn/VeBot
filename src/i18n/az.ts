@@ -17,7 +17,7 @@ export const az = {
   "sidebar.close": "Paneli bağla",
 
   // Top bar
-  "topbar.title": "Abituriyent Köməkçisi",
+  "topbar.title": "Məlumat sorğu sistemi",
   "topbar.restart": "Söhbəti yenilə",
 
   // Chat

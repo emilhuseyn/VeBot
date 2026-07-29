@@ -10,7 +10,7 @@ export const ru: Record<TranslationKey, string> = {
   "sidebar.open": "Открыть панель",
   "sidebar.close": "Закрыть панель",
 
-  "topbar.title": "Помощник абитуриента",
+  "topbar.title": "Информационно-справочная система",
   "topbar.restart": "Начать заново",
 
   "chat.greeting":

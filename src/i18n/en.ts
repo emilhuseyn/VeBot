@@ -10,7 +10,7 @@ export const en: Record<TranslationKey, string> = {
   "sidebar.open": "Open sidebar",
   "sidebar.close": "Close sidebar",
 
-  "topbar.title": "Applicant Assistant",
+  "topbar.title": "Information Inquiry System",
   "topbar.restart": "Restart chat",
 
   "chat.greeting":
